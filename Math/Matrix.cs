@@ -13,7 +13,8 @@ namespace nobnak.Math {
 			return m;
 		}
 
-		public static Matrix4x4 SetRotation(this Matrix4x4 m, Vector3 t, Vector3 b, Vector3 n) {
+		public static Matrix4x4 Rotation(Vector3 t, Vector3 b, Vector3 n) {
+			var m = new Matrix4x4();
 			m.m00 = t.x;	m.m01 = b.x;	m.m02 = n.x;	m.m03 = 0f;
 			m.m10 = t.y;	m.m11 = b.y;	m.m12 = n.y;	m.m13 = 0f;
 			m.m20 = t.z;	m.m21 = b.z;	m.m22 = n.z;	m.m23 = 0f;
