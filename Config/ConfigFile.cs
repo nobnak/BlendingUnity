@@ -21,6 +21,19 @@ namespace nobnak.Config {
 			return _map.TryGetValue(key, out data);
 		}
 
+		public string Get(string key, string defaultValue) {
+			string value;
+			return TryGet(key, out value) ? value : defaultValue;
+		}
+		public int Get(string key, int defaultValue) {
+			string value;
+			return TryGet(key, out value) ? int.Parse(value) : defaultValue;
+		}
+		public float Get(string key, float defaultValue) {
+			string value;
+			return TryGet(key, out value) ? float.Parse(value) : defaultValue;
+		}
+
 		public static ConfigFile Load(string path) {
 			using (var reader = File.OpenText(path)) {
 				var config = new ConfigFile();
