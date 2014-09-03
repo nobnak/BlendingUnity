@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace nobnak.Time {
+namespace nobnak.Timer {
 
 	public static class HighResTime {
 	    private static DateTime _startTime;

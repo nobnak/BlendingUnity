@@ -1,6 +1,6 @@
 using System;
 
-namespace nobnak.Time {
+namespace nobnak.Timer {
 
 	public static class NtpUtil {
 		public static double Delay(DateTime t0, DateTime t1, DateTime t2, DateTime t3) {
