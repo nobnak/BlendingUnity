@@ -47,12 +47,5 @@ namespace nobnak.Texture {
 					+ t * ((1f-s) * Values[ix+iy1*Width] + s * Values[ix1+iy1*Width]);
 			}
 		}
-		public void Save(Color[] colors) {
-			var length = Width * Height;
-			for (var i = 0; i < length; i++) {
-				var v = Values[i];
-				colors[i] = new Color(v, v, v, v);
-			}
-		}
 	}
 }
