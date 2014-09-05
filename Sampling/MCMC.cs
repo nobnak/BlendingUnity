@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using nobnak.Texture;
 
 namespace nobnak.Sampling {
 
 	public class MCMC {
-		public Texture2D ProbTex { get; private set; }
+		public CPUTexture ProbTex { get; private set; }
 		public float StdDev { get; private set; }
 		public float Aspect { get; private set; }
 		public float Height { get; private set; }
@@ -15,8 +16,8 @@ namespace nobnak.Sampling {
 		private float _currDensity;
 		private Vector2 _stddevAspect;
 
-		public MCMC(Texture2D probTex, float stddev, float aspect) : this(probTex, stddev, aspect, 1f, 1e-6f) {}
-		public MCMC(Texture2D probTex, float stddev, float aspect, float height, float epsilon) {
+		public MCMC(CPUTexture probTex, float stddev, float aspect) : this(probTex, stddev, aspect, 1f, 1e-6f) {}
+		public MCMC(CPUTexture probTex, float stddev, float aspect, float height, float epsilon) {
 			this.ProbTex = probTex;
 			this.Aspect = aspect;
 			this.Height = height;
@@ -55,7 +56,7 @@ namespace nobnak.Sampling {
 			}
 		}
 		float Density(Vector2 curr) {
-			return Height * ProbTex.GetPixelBilinear(curr.x, curr.y).r + Epsilon;
+			return Height * ProbTex[curr.x, curr.y] + Epsilon;
 		}
 
 	}
