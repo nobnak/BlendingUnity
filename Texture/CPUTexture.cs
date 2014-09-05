@@ -4,10 +4,10 @@ using System.Collections;
 namespace nobnak.Texture {
 
 	public class CPUTexture {
-		public int Width { get; private set; }
-		public int Height { get; private set; }
+		public readonly int Width;
+		public readonly int Height;
 
-		public float[] Values;
+		public readonly float[] Values;
 
 		public CPUTexture(int width, int height) {
 			Width = width;
