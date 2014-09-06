@@ -16,6 +16,9 @@ namespace nobnak.Timer {
 	            return _startTime.AddTicks(_stopWatch.ElapsedTicks);
 	        }
 	    }
+		public static DateTime LocalNow {
+			get { return UtcNow.ToLocalTime(); }
+		}
 
 	    private static void Reset() {
 	        _startTime = DateTime.UtcNow;
