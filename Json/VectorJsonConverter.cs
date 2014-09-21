@@ -40,11 +40,11 @@ namespace nobnak.Json {
 			if (reader.TokenType != JsonToken.StartArray)
 				goto EXISTING_VALUE;
 
-			if (!reader.Read() || reader.TokenType != JsonToken.Float)
+			if (!CanTokenBeFloat(reader))
 				goto EXISTING_VALUE;
 			v0 = System.Convert.ToSingle(reader.Value);
 
-			if (!reader.Read() || reader.TokenType != JsonToken.Float)
+			if (!CanTokenBeFloat(reader))
 				goto EXISTING_VALUE;
 			v1 = System.Convert.ToSingle(reader.Value);
 
@@ -55,7 +55,7 @@ namespace nobnak.Json {
 					return new Vector2(v0, v1);
 
 			if (objectType == typeof(Vector3) || objectType == typeof(Vector4)) {
-				if (!reader.Read() || reader.TokenType != JsonToken.Float)
+				if (!CanTokenBeFloat(reader))
 					goto EXISTING_VALUE;
 				v2 = System.Convert.ToSingle(reader.Value);
 				if (objectType != typeof(Vector4))
@@ -64,7 +64,7 @@ namespace nobnak.Json {
 					else
 						return new Vector3(v0, v1, v2);
 				
-				if (!reader.Read() || reader.TokenType != JsonToken.Float)
+				if (!CanTokenBeFloat(reader))
 					goto EXISTING_VALUE;
 				v3 = System.Convert.ToSingle(reader.Value);
 				if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
@@ -78,6 +78,10 @@ namespace nobnak.Json {
 		}
 		public override bool CanConvert(System.Type objectType) {
 			return objectType == typeof(Vector2) || objectType == typeof(Vector3) || objectType == typeof(Vector4);
+		}
+
+		bool CanTokenBeFloat(JsonReader reader) {
+			return reader.Read() && (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
 		}
 		#endregion
 	}
