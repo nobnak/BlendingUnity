@@ -70,7 +70,7 @@ namespace nobnak.Sampling {
 		Vector2 Repeat(Vector2 v) {
 			v.x -= Mathf.Floor((v.x - EffectiveArea.xMin) / EffectiveArea.width) * EffectiveArea.width;
 			v.y -= Mathf.Floor((v.y - EffectiveArea.yMin) / EffectiveArea.height) * EffectiveArea.height;
-			return v;
+			return Clamp(v);
 		}
 		Vector2 Clamp( Vector2 v) {
 			v.x = Mathf.Clamp(v.x, EffectiveArea.xMin, EffectiveArea.xMax);

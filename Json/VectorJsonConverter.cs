@@ -27,62 +27,77 @@ namespace nobnak.Json {
 				writer.WriteValue(v.z);
 				writer.WriteValue(v.w);
 				writer.WriteEndArray();
+			} else if (value is Color) {
+				var v = (Color)value;
+				writer.WriteStartArray();
+				writer.WriteValue(v.r);
+				writer.WriteValue(v.g);
+				writer.WriteValue(v.b);
+				writer.WriteValue(v.a);
+				writer.WriteEndArray();
+			} else if (value is Rect) {
+				var v = (Rect)value;
+				writer.WriteStartArray();
+				writer.WriteValue(v.x);
+				writer.WriteValue(v.y);
+				writer.WriteValue(v.width);
+				writer.WriteValue(v.height);
+				writer.WriteEndArray();
 			} else {
 				throw new JsonSerializationException("Expected Vector");
 			}
 		}
 		public override object ReadJson(JsonReader reader, System.Type objectType, object existingValue, 
 		                                 JsonSerializer serializer) {
-			float v0, v1, v2, v3;
-
 			reader.FloatParseHandling = FloatParseHandling.Double;
 
 			if (reader.TokenType != JsonToken.StartArray)
 				goto EXISTING_VALUE;
 
-			if (!CanTokenBeFloat(reader))
-				goto EXISTING_VALUE;
-			v0 = System.Convert.ToSingle(reader.Value);
-
-			if (!CanTokenBeFloat(reader))
-				goto EXISTING_VALUE;
-			v1 = System.Convert.ToSingle(reader.Value);
-
-			if (objectType == typeof(Vector2))
-				if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
+			Vector4 v = Vector4.zero;
+			int length = 0;
+			while (length < 5) {
+				if (!reader.Read())
 					goto EXISTING_VALUE;
-				else
-					return new Vector2(v0, v1);
-
-			if (objectType == typeof(Vector3) || objectType == typeof(Vector4)) {
-				if (!CanTokenBeFloat(reader))
+				if (reader.TokenType == JsonToken.EndArray)
+					break;
+				if (!IsFloat(reader.TokenType))
 					goto EXISTING_VALUE;
-				v2 = System.Convert.ToSingle(reader.Value);
-				if (objectType != typeof(Vector4))
-					if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
-						goto EXISTING_VALUE;
-					else
-						return new Vector3(v0, v1, v2);
-				
-				if (!CanTokenBeFloat(reader))
-					goto EXISTING_VALUE;
-				v3 = System.Convert.ToSingle(reader.Value);
-				if (!reader.Read() || reader.TokenType != JsonToken.EndArray)
-					goto EXISTING_VALUE;
-				else
-					return new Vector4(v0, v1, v2, v3);
+				v[length++] = System.Convert.ToSingle(reader.Value);
 			}
 
+			if (length == 2) {
+				if (objectType == typeof(Vector2))
+					return (Vector2)v;
+				goto EXISTING_VALUE;
+			} else if (length == 3) {
+				if (objectType == typeof(Vector3))
+					return (Vector3)v;
+				goto EXISTING_VALUE;
+			} else if (length == 4) {
+				if (objectType == typeof(Vector4))
+					return v;
+				if (objectType == typeof(Color))
+					return (Color)v;
+				if (objectType == typeof(Rect))
+					return new Rect(v.x, v.y, v.z, v.w);
+				goto EXISTING_VALUE;
+			}
+			
 		EXISTING_VALUE:
 				return existingValue;
 		}
 		public override bool CanConvert(System.Type objectType) {
-			return objectType == typeof(Vector2) || objectType == typeof(Vector3) || objectType == typeof(Vector4);
+			return objectType == typeof(Vector2) || objectType == typeof(Vector3) || objectType == typeof(Vector4) || objectType == typeof(Color);
 		}
 
 		bool CanTokenBeFloat(JsonReader reader) {
-			return reader.Read() && (reader.TokenType == JsonToken.Float || reader.TokenType == JsonToken.Integer);
+			return reader.Read() && IsFloat(reader.TokenType);
 		}
+		bool IsFloat(JsonToken tokenType) {
+			return tokenType == JsonToken.Float || tokenType == JsonToken.Integer;
+		}
+
 		#endregion
 	}
 }
