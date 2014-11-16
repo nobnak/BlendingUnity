@@ -1,11 +1,13 @@
-﻿Shader "Custom/ScreenArea" {
+﻿Shader "Custom/Blend" {
 	Properties {
-		_MainTex ("Base (RGB)", 2D) = "white" {}
-		_Color ("Color", Color) = (1, 1, 1, 1)
+		_MainTex ("Main Texture", 2D) = "black" {}
+		_Gamma ("Gamma", Float) = 1
 	}
 	SubShader {
-		Blend SrcAlpha OneMinusSrcAlpha
+		Tags { "Queue" = "Overlay" }
+		ZTest Always ZWrite Off Cull Off Fog { Mode Off }
 		
+		GrabPass { "_SrcTex" }
 		Pass {
 			CGPROGRAM
 			#pragma vertex vert
@@ -13,23 +15,27 @@
 			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
-			float4 _Color;
+			float _Gamma;
 
 			struct Input {
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
+				float2 uv2 : TEXCOORD1;
 			};
 
 			Input vert(Input IN) {
 				Input OUT;
 				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
 				OUT.uv = IN.uv;
+				OUT.uv2 = IN.uv2;
 				return OUT;
 			}
 			
 			float4 frag(Input IN) : COLOR {
 				float4 c = tex2D(_MainTex, IN.uv);
-				return c * _Color;
+				float2 w = smoothstep(0.0, 1.0, IN.uv2);
+				c *= pow(w.x * w.y, _Gamma);
+				return c;
 			}
 			ENDCG
 		}
