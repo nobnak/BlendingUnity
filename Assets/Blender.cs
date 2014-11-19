@@ -35,7 +35,7 @@ public class Blender : MonoBehaviour {
 			captureGo.transform.parent = transform;
 			_capture = captureGo.GetComponent<Capture>();
 		}
-		blendMat.mainTexture = _capture.Target;
+		blendMat.mainTexture = _capture.GetTarget();
 
 		if (_blendCam == null) {
 			_blendCam = new GameObject("Blend Camera", typeof(Camera));
