@@ -304,13 +304,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31fb96e09cc7bbf48abd82b08d3accc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  config: Blending.txt
   data:
-    RowOffsets:
+    RowOverlaps:
     - 0
-    - .5
-    ColOffsets:
+    ColOverlaps:
     - 0
-    - .5
   blendMat: {fileID: 2100000, guid: 20f4710f1709f544a8c6c1ef1071ca48, type: 2}
 --- !u!4 &1708105131
 Transform:
