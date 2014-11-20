@@ -310,7 +310,15 @@ MonoBehaviour:
     - 0
     ColOverlaps:
     - 0
+    Gamma: 0
+    Masks:
+    - bl: {x: 0, y: 0}
+      br: {x: 1, y: 0}
+      tl: {x: 0, y: 1}
+      tr: {x: 1, y: 1}
   blendMat: {fileID: 2100000, guid: 20f4710f1709f544a8c6c1ef1071ca48, type: 2}
+  maskMat: {fileID: 2100000, guid: 2997e5eed5cd52d4c9d789dcf3577173, type: 2}
+  debugKey: 101
 --- !u!4 &1708105131
 Transform:
   m_ObjectHideFlags: 0

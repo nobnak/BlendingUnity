@@ -3,6 +3,7 @@ using System.Collections;
 using nobnak.GUI;
 using Newtonsoft.Json;
 using System.IO;
+using nobnak.Json;
 
 namespace nobnak.Blending {
 
@@ -23,40 +24,47 @@ namespace nobnak.Blending {
 			Vector2.zero, new Vector2(1f, 0f), new Vector2(1f, 0f), Vector2.zero };
 
 		public static readonly string[] GAMMA_SELECT = new string[]{ "sRGB", "Linear", "1/sRGB" };
-		public static readonly float[] GAMMA_VALUE = new float[]{ 1 / 2.2f, 1f, 2.2f };
+		public static readonly float[] GAMMA_VALUE = new float[]{ (float)(1 / 2.2), 1f, 2.2f };
 
 		public string config = "Blending.txt";
 		public Data data;
 		public Material blendMat;
+		public Material maskMat;
 		public KeyCode debugKey = KeyCode.E;
 
 		private Capture _capture;
-		private GameObject _blendCam;
-		private GameObject _blendGo;
+		private Capture _blend;
+		private GameObject _blendObj;
 		private Mesh _blendMesh;
+		private GameObject _maskCam;
+		private GameObject _maskObj;
+		private Mesh _maskMesh;
 
 		private int _debugMode = 0;
+		private int _nCols;
+		private int _nRows;
 		private UIInt _uiN;
 		private UIInt _uiM;
 		private UIFloat[] _uiHBlendings;
 		private UIFloat[] _uiVBlendings;
 		private int _selectedGamma = 0;
+		private UIFloat[] _uiMasks;
+		private string[] _maskSelections;
+		private int _selectedMask = 0;
 
 		void OnDisable() {
 			Destroy(_capture.gameObject);
-			Destroy(_blendCam);
+			Destroy(_blend.gameObject);
+			Destroy(_blendObj);
 			Destroy(_blendMesh);
-			Destroy(_blendGo);
+			Destroy(_maskCam);
+			Destroy(_maskObj);
+			Destroy(_maskMesh);
 		}
 		void OnEnable() {
 			Load();
 			CheckInit();
 			UpdateMesh();
-
-			_uiN = new UIInt(data.ColOverlaps.Length + 1);
-			_uiM = new UIInt(data.RowOverlaps.Length + 1);
-			_uiHBlendings = new UIFloat[0];
-			_uiVBlendings = new UIFloat[0];
 		}
 		void Update() {
 			if (Input.GetKeyDown(debugKey)) { 
@@ -69,7 +77,7 @@ namespace nobnak.Blending {
 			if (_debugMode > 0) {
 				CheckInit();
 				UpdateMesh();
-				//UpdateGUI();
+				UpdateGUI();
 			}
 
 			blendMat.SetFloat(SHADER_GAMMA, data.Gamma);
@@ -78,11 +86,14 @@ namespace nobnak.Blending {
 			if (_debugMode == 0)
 				return;
 
-			var uiSize = new Vector2(300f, 400f);
+			var uiSize = new Vector2(600f, 400f);
 			GUILayout.BeginArea(new Rect(0.5f * (Screen.width - uiSize.x), 0.5f * (Screen.height - uiSize.y), uiSize.x, uiSize.y));
-
 			GUILayout.BeginHorizontal();
-			GUILayout.Label("Monitor N x M");
+
+			GUILayout.BeginVertical(GUILayout.Width(uiSize.x * 0.49f));
+			GUILayout.Label("---- Blending ----");
+			GUILayout.BeginHorizontal();
+			GUILayout.Label(" N x M");
 			_uiN.StrValue = GUILayout.TextField(_uiN.StrValue, TEXT_WIDTH);
 			_uiM.StrValue = GUILayout.TextField(_uiM.StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal();
@@ -90,60 +101,142 @@ namespace nobnak.Blending {
 			GUILayout.Label("Gamma Correction");
 			_selectedGamma = GUILayout.SelectionGrid(_selectedGamma, GAMMA_SELECT, GAMMA_SELECT.Length);
 
-			GUILayout.Label("Horizontal Blending");
+			GUILayout.Label("Horizontal Blends");
 			GUILayout.BeginHorizontal();
 			for (var i = 0; i < _uiHBlendings.Length; i++)
 				_uiHBlendings[i].StrValue = GUILayout.TextField(_uiHBlendings[i].StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal();
 
-			GUILayout.Label("Vertical Blending");
+			GUILayout.Label("Vertical Blends");
 			GUILayout.BeginHorizontal();
 			for (var i = 0; i < _uiVBlendings.Length; i++)
 				_uiVBlendings[i].StrValue = GUILayout.TextField(_uiVBlendings[i].StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal();
+			GUILayout.EndVertical();
 
+			GUILayout.BeginVertical(GUILayout.Width(uiSize.x * 0.49f));
+			GUILayout.Label("---- Mask ----");
+			GUILayout.Label("Select Screen");
+			_selectedMask = GUILayout.SelectionGrid(_selectedMask, _maskSelections, _nCols);
+			var selX = _selectedMask % _nCols;
+			var selY = (_nRows - 1) - _selectedMask / _nCols;
+			var selScreen = Mathf.Clamp(selX + selY * _nCols, 0, (_nCols * _nRows - 1));
+
+			var maskOffset = 8 * selScreen;
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Bottom Left");
+			_uiMasks[maskOffset].StrValue = GUILayout.TextField(_uiMasks[maskOffset].StrValue, TEXT_WIDTH);
+			_uiMasks[maskOffset + 1].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 1].StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Bottom Right");
+			_uiMasks[maskOffset + 2].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 2].StrValue, TEXT_WIDTH);
+			_uiMasks[maskOffset + 3].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 3].StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Top Left");
+			_uiMasks[maskOffset + 4].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 4].StrValue, TEXT_WIDTH);
+			_uiMasks[maskOffset + 5].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 5].StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Top Right");
+			_uiMasks[maskOffset + 6].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 6].StrValue, TEXT_WIDTH);
+			_uiMasks[maskOffset + 7].StrValue = GUILayout.TextField(_uiMasks[maskOffset + 7].StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal();
+			GUILayout.EndVertical();
+
+			GUILayout.EndHorizontal();
 			GUILayout.EndArea();
 		}
 
 		void CheckInit () {
 			if (_capture == null) {
-				var captureGo = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
-				captureGo.transform.parent = transform;
-				_capture = captureGo.GetComponent<Capture> ();
+				var captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
+				captureCam.transform.parent = transform;
+				_capture = captureCam.GetComponent<Capture> ();
 			}
-			blendMat.mainTexture = _capture.GetTarget ();
-			if (_blendCam == null) {
-				_blendCam = new GameObject ("Blend Camera", typeof(Camera));
-				_blendCam.transform.parent = transform;
-				_blendCam.transform.localPosition = new Vector3 (0f, 0f, -1f);
-				_blendCam.transform.localRotation = Quaternion.identity;
-				_blendCam.camera.depth = 100;
-				_blendCam.camera.orthographic = true;
-				_blendCam.camera.orthographicSize = 0.5f;
-				_blendCam.camera.aspect = 1f;
-				_blendCam.camera.clearFlags = CameraClearFlags.SolidColor;
+
+			if (_blend == null) {
+				var blendCam = new GameObject ("Blend Camera", typeof(Camera), typeof(Capture));
+				blendCam.transform.parent = transform;
+				blendCam.transform.localPosition = new Vector3 (0f, 0f, -1f);
+				blendCam.transform.localRotation = Quaternion.identity;
+				blendCam.camera.depth = 99;
+				blendCam.camera.orthographic = true;
+				blendCam.camera.orthographicSize = 0.5f;
+				blendCam.camera.aspect = 1f;
+				blendCam.camera.clearFlags = CameraClearFlags.SolidColor;
+				blendCam.camera.backgroundColor = Color.clear;
+				_blend = blendCam.GetComponent<Capture>();
 			}
+			if (_blendObj == null) {
+				_blendObj = new GameObject ("Blend Obj");
+				_blendObj.transform.parent = transform;
+				_blendObj.transform.localPosition = new Vector3 (-0.5f, -0.5f, 0f);
+				_blendObj.transform.localRotation = Quaternion.identity;
+				_blendObj.transform.localScale = Vector3.one;
+				_blendObj.layer = LAYER_BLEND;
+				_blendObj.AddComponent<MeshRenderer> ().sharedMaterial = blendMat;
+				_blendObj.AddComponent<MeshFilter> ().sharedMesh = _blendMesh = new Mesh ();
+				_blendMesh.MarkDynamic ();
+			}
+
+			if (_maskCam == null) {
+				_maskCam = new GameObject("Mask Camera", typeof(Camera));
+				_maskCam.transform.parent = transform;
+				_maskCam.transform.localPosition = new Vector3(0f, 0f, -1f);
+				_maskCam.transform.localRotation = Quaternion.identity;
+				_maskCam.camera.depth = 100;
+				_maskCam.camera.orthographic = true;
+				_maskCam.camera.orthographicSize = 0.5f;
+				_maskCam.camera.aspect = 1f;
+				_maskCam.camera.clearFlags = CameraClearFlags.SolidColor;
+				_maskCam.camera.backgroundColor = Color.clear;
+			}
+			if (_maskObj == null) {
+				_maskObj = new GameObject("Mask Obj");
+				_maskObj.transform.parent = transform;
+				_maskObj.transform.localPosition = new Vector3(-0.5f, -0.5f, 0f);
+				_maskObj.transform.localRotation = Quaternion.identity;
+				_maskObj.transform.localScale = Vector3.one;
+				_maskObj.layer = LAYER_MASK;
+				_maskObj.AddComponent<MeshRenderer>().sharedMaterial = maskMat;
+				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
+				_maskMesh.MarkDynamic();
+			}
+
+			data.CheckInit();
+
+			blendMat.mainTexture = _capture.GetTarget();
+			maskMat.mainTexture = _blend.GetTarget();
+
 			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK);
 			foreach (var cam in Camera.allCameras)
 				cam.cullingMask &= ~layerFlags;
-			_blendCam.camera.cullingMask = 1 << LAYER_BLEND;
-			if (_blendGo == null) {
-				_blendGo = new GameObject ("Blend");
-				_blendGo.transform.parent = transform;
-				_blendGo.transform.localPosition = new Vector3 (-0.5f, -0.5f, 0f);
-				_blendGo.transform.localRotation = Quaternion.identity;
-				_blendGo.transform.localScale = Vector3.one;
-				_blendGo.layer = LAYER_BLEND;
-				_blendGo.AddComponent<MeshRenderer> ().sharedMaterial = blendMat;
-				_blendGo.AddComponent<MeshFilter> ().sharedMesh = _blendMesh = new Mesh ();
-				_blendMesh.MarkDynamic ();
-			}
+			_blend.camera.cullingMask = 1 << LAYER_BLEND;
+			_maskCam.camera.cullingMask = 1 << LAYER_MASK;
+
+			_nCols = data.ColOverlaps.Length + 1;
+			_nRows = data.RowOverlaps.Length + 1;
+			if (_uiN == null)
+				_uiN = new UIInt(_nCols);
+			if (_uiM == null)
+				_uiM = new UIInt(_nRows);
+			if (_uiHBlendings == null)
+				_uiHBlendings = new UIFloat[0];
+			if (_uiVBlendings == null)
+				_uiVBlendings = new UIFloat[0];
+			if (_uiMasks == null)
+				_uiMasks = new UIFloat[0];
 		}
 
 		void UpdateMesh() {
-			var nRows = data.RowOverlaps.Length + 1;
-			var nCols = data.ColOverlaps.Length + 1;
-			var nScreens = nRows * nCols;
+			UpdateBlendMesh();
+			UpdateMaskMesh();
+		}
+
+		void UpdateBlendMesh() {
+			var nScreens = _nRows * _nCols;
 			var nVertices = 16 * nScreens;
 			var nIndices = 54 * nScreens;
 			if (_blendMesh.vertexCount != nVertices) {
@@ -160,15 +253,15 @@ namespace nobnak.Blending {
 			var triangles = _blendMesh.triangles;
 			var iTriangle = 0;
 			var iScreen = 0;
-			var screenSize = new Vector2 (1f / nCols, 1f / nRows);
+			var screenSize = new Vector2 (1f / _nCols, 1f / _nRows);
 			var uvBase = Vector2.zero;
-			for (var y = 0; y < nRows; y++) {
+			for (var y = 0; y < _nRows; y++) {
 				var yFirst = (y == 0);
-				var yLast = (y + 1 == nRows);
+				var yLast = (y + 1 == _nRows);
 				uvBase.x = 0f;
-				for (var x = 0; x < nCols; x++) {
+				for (var x = 0; x < _nCols; x++) {
 					var xFirst = (x == 0);
-					var xLast = (x + 1 == nCols);
+					var xLast = (x + 1 == _nCols);
 					var b0 = new Vector2 (xFirst ? 0f : (data.ColOverlaps [x - 1] * screenSize.x), yFirst ? 0f : (data.RowOverlaps [y - 1] * screenSize.y));
 					var b1 = new Vector2 (xLast ? 0f : (data.ColOverlaps [x] * screenSize.x), yLast ? 0f : (data.RowOverlaps [y] * screenSize.y));
 					var vertexIndexBase = iScreen * 16;
@@ -176,26 +269,53 @@ namespace nobnak.Blending {
 					float x0 = vBase.x, x1 = vBase.x + b0.x, x2 = vBase.x + screenSize.x - b1.x, x3 = vBase.x + screenSize.x;
 					float y0 = vBase.y, y1 = vBase.y + b0.y, y2 = vBase.y + screenSize.y - b1.y, y3 = vBase.y + screenSize.y;
 					System.Array.Copy (new Vector3[] {
-						new Vector3 (x0, y0, 0f), new Vector3 (x1, y0, 0f), new Vector3 (x2, y0, 0f), new Vector3 (x3, y0, 0f),
-						new Vector3 (x0, y1, 0f), new Vector3 (x1, y1, 0f), new Vector3 (x2, y1, 0f), new Vector3 (x3, y1, 0f),
-						new Vector3 (x0, y2, 0f), new Vector3 (x1, y2, 0f), new Vector3 (x2, y2, 0f), new Vector3 (x3, y2, 0f),
-						new Vector3 (x0, y3, 0f), new Vector3 (x1, y3, 0f), new Vector3 (x2, y3, 0f), new Vector3 (x3, y3, 0f)
+						new Vector3 (x0, y0, 0f),
+						new Vector3 (x1, y0, 0f),
+						new Vector3 (x2, y0, 0f),
+						new Vector3 (x3, y0, 0f),
+						new Vector3 (x0, y1, 0f),
+						new Vector3 (x1, y1, 0f),
+						new Vector3 (x2, y1, 0f),
+						new Vector3 (x3, y1, 0f),
+						new Vector3 (x0, y2, 0f),
+						new Vector3 (x1, y2, 0f),
+						new Vector3 (x2, y2, 0f),
+						new Vector3 (x3, y2, 0f),
+						new Vector3 (x0, y3, 0f),
+						new Vector3 (x1, y3, 0f),
+						new Vector3 (x2, y3, 0f),
+						new Vector3 (x3, y3, 0f)
 					}, 0, vertices, vertexIndexBase, 16);
-
-					x0 = uvBase.x; x1 = uvBase.x + b0.x; x2 = uvBase.x + screenSize.x - b1.x; x3 = uvBase.x + screenSize.x;
-					y0 = uvBase.y; y1 = uvBase.y + b0.y; y2 = uvBase.y + screenSize.y - b1.y; y3 = uvBase.y + screenSize.y;
+					x0 = uvBase.x;
+					x1 = uvBase.x + b0.x;
+					x2 = uvBase.x + screenSize.x - b1.x;
+					x3 = uvBase.x + screenSize.x;
+					y0 = uvBase.y;
+					y1 = uvBase.y + b0.y;
+					y2 = uvBase.y + screenSize.y - b1.y;
+					y3 = uvBase.y + screenSize.y;
 					System.Array.Copy (new Vector2[] {
-						new Vector2 (x0, y0), new Vector2 (x1, y0), new Vector2 (x2, y0), new Vector2 (x3, y0),
-						new Vector2 (x0, y1), new Vector2 (x1, y1), new Vector2 (x2, y1), new Vector2 (x3, y1),
-						new Vector2 (x0, y2), new Vector2 (x1, y2), new Vector2 (x2, y2), new Vector2 (x3, y2),
-						new Vector2 (x0, y3), new Vector2 (x1, y3), new Vector2 (x2, y3), new Vector2 (x3, y3)
+						new Vector2 (x0, y0),
+						new Vector2 (x1, y0),
+						new Vector2 (x2, y0),
+						new Vector2 (x3, y0),
+						new Vector2 (x0, y1),
+						new Vector2 (x1, y1),
+						new Vector2 (x2, y1),
+						new Vector2 (x3, y1),
+						new Vector2 (x0, y2),
+						new Vector2 (x1, y2),
+						new Vector2 (x2, y2),
+						new Vector2 (x3, y2),
+						new Vector2 (x0, y3),
+						new Vector2 (x1, y3),
+						new Vector2 (x2, y3),
+						new Vector2 (x3, y3)
 					}, 0, uv, vertexIndexBase, 16);
-
 					for (var i = 0; i < UV2.Length; i++)
 						uv2 [vertexIndexBase + i] = UV2 [i];
 					foreach (var i in SCREEN_INDICES)
 						triangles [iTriangle++] = vertexIndexBase + i;
-
 					iScreen++;
 					uvBase += new Vector2 (screenSize.x - b1.x, xLast ? (screenSize.y - b1.y) : 0f);
 				}
@@ -207,21 +327,59 @@ namespace nobnak.Blending {
 			_blendMesh.RecalculateBounds ();
 		}
 
+		void UpdateMaskMesh() {
+			var nScreens = data.Masks.Length;
+			var nVertices = 4 * nScreens;
+			var nIndices = 6 * nScreens;
+			if (_maskMesh.vertexCount != nVertices) {
+				_maskMesh.Clear ();
+				_maskMesh.vertices = new Vector3[nVertices];
+				_maskMesh.uv = new Vector2[nVertices];
+				_maskMesh.triangles = new int[nIndices];
+			}
+			var vertices = _maskMesh.vertices;
+			var uv = _maskMesh.uv;
+			var triangles = _maskMesh.triangles;
+			var screenSize = new Vector2(1f / _nCols, 1f / _nRows);
+			for (var y = 0; y < _nRows; y++) {
+				for (var x = 0; x < _nCols; x++) {
+					var i = x + y * _nCols;
+					var iv = 4 * i;
+					var it = 6 * i;
+					var mask = data.Masks [i];
+					var offset = new Vector2(x * screenSize.x, y * screenSize.y);
+					vertices [iv] = uv [iv] = offset + Vector2.Scale(mask.bl, screenSize);
+					vertices [iv + 1] = uv [iv + 1] = offset + Vector2.Scale(mask.br, screenSize);
+					vertices [iv + 2] = uv [iv + 2] = offset + Vector2.Scale(mask.tl, screenSize);
+					vertices [iv + 3] = uv [iv + 3] = offset + Vector2.Scale(mask.tr, screenSize);
+					triangles [it] = iv;
+					triangles [it + 1] = iv + 3;
+					triangles [it + 2] = iv + 1;
+					triangles [it + 3] = iv;
+					triangles [it + 4] = iv + 2;
+					triangles [it + 5] = iv + 3;
+				}
+			}
+			_maskMesh.vertices = vertices;
+			_maskMesh.uv = uv;
+			_maskMesh.triangles = triangles;
+			_maskMesh.RecalculateBounds ();
+		}
+
 		void UpdateGUI () {
-			var nX = data.ColOverlaps.Length + 1;
-			var nY = data.RowOverlaps.Length + 1;
-			if (_uiN.Value != nX || _uiM.Value != nY) {
-				_uiN.Value = nX = Mathf.Max (1, _uiN.Value);
-				_uiM.Value = nY = Mathf.Max (1, _uiM.Value);
+			if (_uiN.Value != _nCols || _uiM.Value != _nRows) {
+				_uiN.Value = _nCols = Mathf.Max (1, _uiN.Value);
+				_uiM.Value = _nRows = Mathf.Max (1, _uiM.Value);
 				data.Reset (_uiN.Value, _uiM.Value);
 			}
-			if (_uiHBlendings.Length != (nX - 1)) {
-				_uiHBlendings = new UIFloat[nX - 1];
+
+			if (_uiHBlendings.Length != (_nCols - 1)) {
+				_uiHBlendings = new UIFloat[_nCols - 1];
 				for (var i = 0; i < _uiHBlendings.Length; i++)
 					_uiHBlendings [i] = new UIFloat (data.ColOverlaps [i]);
 			}
-			if (_uiVBlendings.Length != (nY - 1)) {
-				_uiVBlendings = new UIFloat[nY - 1];
+			if (_uiVBlendings.Length != (_nRows - 1)) {
+				_uiVBlendings = new UIFloat[_nRows - 1];
 				for (var i = 0; i < _uiVBlendings.Length; i++)
 					_uiVBlendings [i] = new UIFloat (data.RowOverlaps [i]);
 			}
@@ -231,12 +389,43 @@ namespace nobnak.Blending {
 				data.RowOverlaps [i] = _uiVBlendings [i].Value;
 
 			data.Gamma = GAMMA_VALUE[_selectedGamma];
+
+			var nScreens = _nCols * _nRows;
+			if (_uiMasks.Length != (8 * nScreens)) {
+				_uiMasks = new UIFloat[8 * nScreens];
+				for (var i = 0; i < nScreens; i++) {
+					var mask = data.Masks[i];
+					var im = 8 * i;
+					_uiMasks[im    ] = new UIFloat(mask.bl.x); _uiMasks[im + 1] = new UIFloat(mask.bl.y);
+					_uiMasks[im + 2] = new UIFloat(mask.br.x); _uiMasks[im + 3] = new UIFloat(mask.bl.y);
+					_uiMasks[im + 4] = new UIFloat(mask.tl.x); _uiMasks[im + 5] = new UIFloat(mask.tl.y);
+					_uiMasks[im + 6] = new UIFloat(mask.tr.x); _uiMasks[im + 7] = new UIFloat(mask.tr.y);
+				}
+			}
+			for (var i = 0; i < _uiMasks.Length; i++)
+				_uiMasks[i].Value = Mathf.Clamp01(_uiMasks[i].Value);
+			for (var i = 0; i < nScreens; i++) {
+				var mask = data.Masks[i];
+				var im = 8 * i;
+				mask.bl = new Vector2(_uiMasks[im    ].Value, _uiMasks[im + 1].Value);
+				mask.br = new Vector2(_uiMasks[im + 2].Value, _uiMasks[im + 3].Value);
+				mask.tl = new Vector2(_uiMasks[im + 4].Value, _uiMasks[im + 5].Value);
+				mask.tr = new Vector2(_uiMasks[im + 6].Value, _uiMasks[im + 7].Value);
+				data.Masks[i] = mask;
+			}
+			if (_maskSelections == null || _maskSelections.Length != nScreens) {
+				_maskSelections = new string[nScreens];
+				var i = 0;
+				for (var y = _nRows - 1; y >= 0; y--) {
+					for (var x = 0; x < _nCols; x++) {
+						_maskSelections[i++] = string.Format("{0},{1}", x, y);
+					}
+				}
+			}
 		}
 
 		void Load() {
 			var path = Path.Combine(Application.streamingAssetsPath, config);
-
-			data.CheckInit();
 			if (File.Exists(path))
 				JsonConvert.PopulateObject(File.ReadAllText(path), data);
 		}
@@ -251,17 +440,39 @@ namespace nobnak.Blending {
 			public float[] ColOverlaps;
 			public float Gamma;
 
-			public Data() {
-				Reset(1, 1);
-			}
+			public Mask[] Masks;
+
+			public Data() { Reset(1, 1); }
 
 			public void CheckInit() {
 				if (RowOverlaps == null || ColOverlaps == null)
 					Reset(1, 1);
+
+				var nCols = ColOverlaps.Length + 1;
+				var nRows = RowOverlaps.Length + 1;
+				if (Masks == null || Masks.Length != (nCols * nRows))
+					Reset(nCols, nRows);
 			}
 			public void Reset(int nCols, int nRows) {
 				ColOverlaps = new float[nCols - 1];
 				RowOverlaps = new float[nRows - 1];
+
+				Masks = new Mask[nCols * nRows];
+				for (var i = 0; i < Masks.Length; i++)
+					Masks[i] = new Mask(Vector2.zero, Vector2.one);
+			}
+
+			[System.Serializable]
+			public class Mask {
+				[JsonConverter(typeof(VectorJsonConverter))]
+				public Vector2 bl, br, tl, tr;
+
+				public Mask(Vector2 bottomLeft, Vector2 screenSize) {
+					this.bl = bottomLeft;
+					this.br = bottomLeft + new Vector2(screenSize.x, 0f);
+					this.tl = bottomLeft + new Vector2(0f, screenSize.y);
+					this.tr = bottomLeft + screenSize;
+				}
 			}
 		}
 	}

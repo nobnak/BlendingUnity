@@ -1,9 +1,0 @@
-{
-  "RowOverlaps": [
-    0.1
-  ],
-  "ColOverlaps": [
-    0.1
-  ],
-  "Gamma": 0.454545438
-}
