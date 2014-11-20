@@ -82,6 +82,8 @@ namespace nobnak.Blending {
 				UpdateGUI();
 			}
 
+			blendMat.mainTexture = _capture.GetTarget();
+			maskMat.mainTexture = _blend.GetTarget();
 			blendMat.SetFloat(SHADER_GAMMA, 1f / data.Gamma);
 		}
 		void OnGUI() {
@@ -217,9 +219,6 @@ namespace nobnak.Blending {
 			}
 
 			data.CheckInit();
-
-			blendMat.mainTexture = _capture.GetTarget();
-			maskMat.mainTexture = _blend.GetTarget();
 
 			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK);
 			foreach (var cam in Camera.allCameras)
