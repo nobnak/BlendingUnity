@@ -10,6 +10,9 @@ namespace nobnak.Blending {
 	public class Blender : MonoBehaviour {
 		public const int LAYER_BLEND = 30;
 		public const int LAYER_MASK = 31;
+		public const int DEPTH_CAPTURE = 90;
+		public const int DEPTH_BLEND = 91;
+		public const int DEPTH_MASK = 92;
 		public const string SHADER_GAMMA = "_Gamma";
 		public static readonly GUILayoutOption TEXT_WIDTH = GUILayout.Width(60f);
 
@@ -82,8 +85,6 @@ namespace nobnak.Blending {
 				UpdateGUI();
 			}
 
-			blendMat.mainTexture = _capture.GetTarget();
-			maskMat.mainTexture = _blend.GetTarget();
 			blendMat.SetFloat(SHADER_GAMMA, 1f / data.Gamma);
 		}
 		void OnGUI() {
@@ -166,6 +167,7 @@ namespace nobnak.Blending {
 			if (_capture == null) {
 				var captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
 				captureCam.transform.parent = transform;
+				captureCam.camera.depth = DEPTH_CAPTURE;
 				_capture = captureCam.GetComponent<Capture> ();
 			}
 
@@ -174,7 +176,7 @@ namespace nobnak.Blending {
 				blendCam.transform.parent = transform;
 				blendCam.transform.localPosition = new Vector3 (0f, 0f, -1f);
 				blendCam.transform.localRotation = Quaternion.identity;
-				blendCam.camera.depth = 99;
+				blendCam.camera.depth = DEPTH_BLEND;
 				blendCam.camera.orthographic = true;
 				blendCam.camera.orthographicSize = 0.5f;
 				blendCam.camera.aspect = 1f;
@@ -199,7 +201,7 @@ namespace nobnak.Blending {
 				_maskCam.transform.parent = transform;
 				_maskCam.transform.localPosition = new Vector3(0f, 0f, -1f);
 				_maskCam.transform.localRotation = Quaternion.identity;
-				_maskCam.camera.depth = 100;
+				_maskCam.camera.depth = DEPTH_MASK;
 				_maskCam.camera.orthographic = true;
 				_maskCam.camera.orthographicSize = 0.5f;
 				_maskCam.camera.aspect = 1f;
@@ -219,6 +221,9 @@ namespace nobnak.Blending {
 			}
 
 			data.CheckInit();
+
+			blendMat.mainTexture = _capture.GetTarget();
+			maskMat.mainTexture = _blend.GetTarget();
 
 			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK);
 			foreach (var cam in Camera.allCameras)
