@@ -301,7 +301,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1708105125}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31fb96e09cc7bbf48abd82b08d3accc1, type: 3}
+  m_Script: {fileID: 11500000, guid: 9252fc034592d7049a12ae50cd483a90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   config: Blending.txt
@@ -316,6 +316,7 @@ MonoBehaviour:
       br: {x: 1, y: 0}
       tl: {x: 0, y: 1}
       tr: {x: 1, y: 1}
+      uvOffset: {x: 0, y: 0}
   blendMat: {fileID: 2100000, guid: 20f4710f1709f544a8c6c1ef1071ca48, type: 2}
   maskMat: {fileID: 2100000, guid: 2997e5eed5cd52d4c9d789dcf3577173, type: 2}
   debugKey: 101
