@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using nobnak.Blending;
 
 public class Test : MonoBehaviour {
 	public Capture[] captures;

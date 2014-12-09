@@ -277,58 +277,101 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!1 &1708105125
+--- !u!1 &1635460979
 GameObject:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabParentObject: {fileID: 110018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+  m_PrefabInternal: {fileID: 1716924195}
   serializedVersion: 4
   m_Component:
-  - 4: {fileID: 1708105131}
-  - 114: {fileID: 1708105126}
+  - 4: {fileID: 1635460981}
+  - 114: {fileID: 1635460980}
   m_Layer: 0
-  m_Name: Blend
+  m_Name: Blending
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1708105126
+--- !u!114 &1635460980
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1708105125}
+  m_PrefabParentObject: {fileID: 11410018, guid: 89cdd55c66d6db748bccc8ef1e07d190,
+    type: 2}
+  m_PrefabInternal: {fileID: 1716924195}
+  m_GameObject: {fileID: 1635460979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9252fc034592d7049a12ae50cd483a90, type: 3}
+  m_Script: {fileID: 11500000, guid: 31fb96e09cc7bbf48abd82b08d3accc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   config: Blending.txt
   data:
-    RowOverlaps:
-    - 0
-    ColOverlaps:
-    - 0
-    Gamma: 0
+    RowOverlaps: []
+    ColOverlaps: []
+    Gamma: 2.20000005
     Masks:
     - bl: {x: 0, y: 0}
       br: {x: 1, y: 0}
       tl: {x: 0, y: 1}
       tr: {x: 1, y: 1}
       uvOffset: {x: 0, y: 0}
-  blendMat: {fileID: 2100000, guid: b3b9c10d673d9904bb3de8668c8878b8, type: 2}
-  maskMat: {fileID: 2100000, guid: 0aace727c3903a84ab3088f7a3fbb6c3, type: 2}
+  blendMat: {fileID: 2100000, guid: 20f4710f1709f544a8c6c1ef1071ca48, type: 2}
+  maskMat: {fileID: 2100000, guid: 2997e5eed5cd52d4c9d789dcf3577173, type: 2}
   debugKey: 101
---- !u!4 &1708105131
+--- !u!4 &1635460981
 Transform:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1708105125}
+  m_PrefabParentObject: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+  m_PrefabInternal: {fileID: 1716924195}
+  m_GameObject: {fileID: 1635460979}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
+--- !u!1001 &1716924195
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
+  m_RootGameObject: {fileID: 1635460979}
+  m_IsPrefabParent: 0
+  m_IsExploded: 1
