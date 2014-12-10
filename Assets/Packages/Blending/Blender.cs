@@ -29,7 +29,7 @@ namespace nobnak.Blending {
 			new Vector2(0f, 1f), Vector2.one, Vector2.one, new Vector2(0f, 1f),
 			Vector2.zero, new Vector2(1f, 0f), new Vector2(1f, 0f), Vector2.zero };
 		public static readonly Color[] COLORS = new Color[]{
-			Color.white, Color.green, Color.white, Color.red, Color.black, Color.red, Color.white, Color.green, Color.white };
+			Color.white, Color.green, Color.white, Color.red, Color.black, Color.cyan, Color.white, Color.magenta, Color.white };
 
 		public static readonly string[] GAMMA_SELECT = new string[]{ "sRGB", "Linear", "1/sRGB" };
 		public static readonly float[] GAMMA_VALUE = new float[]{ (float)(1 / 2.2), 1f, 2.2f };
