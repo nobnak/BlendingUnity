@@ -28,6 +28,8 @@ namespace nobnak.Blending {
 			new Vector2(0f, 1f), Vector2.one, Vector2.one, new Vector2(0f, 1f),
 			new Vector2(0f, 1f), Vector2.one, Vector2.one, new Vector2(0f, 1f),
 			Vector2.zero, new Vector2(1f, 0f), new Vector2(1f, 0f), Vector2.zero };
+		public static readonly Color[] COLORS = new Color[]{
+			Color.white, Color.green, Color.white, Color.red, Color.black, Color.red, Color.white, Color.green, Color.white };
 
 		public static readonly string[] GAMMA_SELECT = new string[]{ "sRGB", "Linear", "1/sRGB" };
 		public static readonly float[] GAMMA_VALUE = new float[]{ (float)(1 / 2.2), 1f, 2.2f };
@@ -36,6 +38,7 @@ namespace nobnak.Blending {
 		public Data data;
 		public Material blendMat;
 		public Material maskMat;
+		public Material vcolorMat;
 		public KeyCode debugKey = KeyCode.E;
 
 		private Capture _capture;
@@ -77,7 +80,7 @@ namespace nobnak.Blending {
 		}
 		void Update() {
 			if (Input.GetKeyDown(debugKey)) { 
-				_debugMode = ++_debugMode % 2;
+				_debugMode = ++_debugMode % 3;
 				Screen.showCursor = (_debugMode != 0);
 				if (_debugMode == 0)
 					Save();
@@ -92,6 +95,7 @@ namespace nobnak.Blending {
 			blendMat.mainTexture = _capture.GetTarget();
 			maskMat.mainTexture = _blend.GetTarget();
 			blendMat.SetFloat(SHADER_GAMMA, 1f / data.Gamma);
+			_blendObj.renderer.sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
 		}
 		void OnGUI() {
 			if (_debugMode == 0)
@@ -253,16 +257,17 @@ namespace nobnak.Blending {
 			var nIndices = 54 * nScreens;
 			if (_blendMesh.vertexCount != nVertices) {
 				_blendMesh.Clear ();
-				_blendMesh.vertices = new Vector3[nVertices];
-				_blendMesh.uv = new Vector2[nVertices];
-				_blendMesh.uv2 = new Vector2[nVertices];
+				_blendMesh.vertices = new Vector3[nIndices];
+				_blendMesh.uv = new Vector2[nIndices];
+				_blendMesh.uv2 = new Vector2[nIndices];
 				_blendMesh.triangles = new int[nIndices];
-				_blendMesh.colors = new Color[nVertices];
+				_blendMesh.colors = new Color[nIndices];
 			}
 			var vertices = _blendMesh.vertices;
 			var uv = _blendMesh.uv;
 			var uv2 = _blendMesh.uv2;
 			var triangles = _blendMesh.triangles;
+			var colors = _blendMesh.colors;
 			var iTriangle = 0;
 			var iScreen = 0;
 			var screenSize = new Vector2 (1f / _nCols, 1f / _nRows);
@@ -276,11 +281,10 @@ namespace nobnak.Blending {
 					var xLast = (x + 1 == _nCols);
 					var b0 = new Vector2 (xFirst ? 0f : (data.ColOverlaps [x - 1] * screenSize.x), yFirst ? 0f : (data.RowOverlaps [y - 1] * screenSize.y));
 					var b1 = new Vector2 (xLast ? 0f : (data.ColOverlaps [x] * screenSize.x), yLast ? 0f : (data.RowOverlaps [y] * screenSize.y));
-					var vertexIndexBase = iScreen * 16;
 					var vBase = new Vector3 (x * screenSize.x, y * screenSize.y, 0f);
 					float x0 = vBase.x, x1 = vBase.x + b0.x, x2 = vBase.x + screenSize.x - b1.x, x3 = vBase.x + screenSize.x;
 					float y0 = vBase.y, y1 = vBase.y + b0.y, y2 = vBase.y + screenSize.y - b1.y, y3 = vBase.y + screenSize.y;
-					System.Array.Copy (new Vector3[] {
+					var screenVertices = new Vector3[] {
 						new Vector3 (x0, y0, 0f),
 						new Vector3 (x1, y0, 0f),
 						new Vector3 (x2, y0, 0f),
@@ -296,8 +300,7 @@ namespace nobnak.Blending {
 						new Vector3 (x0, y3, 0f),
 						new Vector3 (x1, y3, 0f),
 						new Vector3 (x2, y3, 0f),
-						new Vector3 (x3, y3, 0f)
-					}, 0, vertices, vertexIndexBase, 16);
+						new Vector3 (x3, y3, 0f) };
 					x0 = uvBase.x;
 					x1 = uvBase.x + b0.x;
 					x2 = uvBase.x + screenSize.x - b1.x;
@@ -306,7 +309,7 @@ namespace nobnak.Blending {
 					y1 = uvBase.y + b0.y;
 					y2 = uvBase.y + screenSize.y - b1.y;
 					y3 = uvBase.y + screenSize.y;
-					System.Array.Copy (new Vector2[] {
+					var screenUv = new Vector2[] {
 						new Vector2 (x0, y0),
 						new Vector2 (x1, y0),
 						new Vector2 (x2, y0),
@@ -322,12 +325,16 @@ namespace nobnak.Blending {
 						new Vector2 (x0, y3),
 						new Vector2 (x1, y3),
 						new Vector2 (x2, y3),
-						new Vector2 (x3, y3)
-					}, 0, uv, vertexIndexBase, 16);
-					for (var i = 0; i < UV2.Length; i++)
-						uv2 [vertexIndexBase + i] = UV2 [i];
-					foreach (var i in SCREEN_INDICES)
-						triangles [iTriangle++] = vertexIndexBase + i;
+						new Vector2 (x3, y3) };
+					for (var j = 0; j < SCREEN_INDICES.Length; j++) {
+						var i = SCREEN_INDICES[j];
+						vertices[iTriangle] = screenVertices[i];
+						uv[iTriangle] = screenUv[i];
+						uv2[iTriangle] = UV2[i];
+						colors[iTriangle] = COLORS[j / 6];
+						triangles [iTriangle] = iTriangle;
+						iTriangle++;
+					}
 					iScreen++;
 					uvBase += new Vector2 (screenSize.x - b1.x, xLast ? (screenSize.y - b1.y) : 0f);
 				}
@@ -335,6 +342,7 @@ namespace nobnak.Blending {
 			_blendMesh.vertices = vertices;
 			_blendMesh.uv = uv;
 			_blendMesh.uv2 = uv2;
+			_blendMesh.colors = colors;
 			_blendMesh.triangles = triangles;
 			_blendMesh.RecalculateBounds ();
 		}
