@@ -12,6 +12,7 @@
 			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
+			float4 _MainTex_ST;
 
 			struct Input {
 				float4 vertex : POSITION;
@@ -21,7 +22,7 @@
 			Input vert(Input IN) {
 				Input OUT;
 				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
-				OUT.uv = IN.uv;
+				OUT.uv = TRANSFORM_TEX(IN.uv, _MainTex);
 				return OUT;
 			}
 			float4 frag(Input IN) : COLOR {
