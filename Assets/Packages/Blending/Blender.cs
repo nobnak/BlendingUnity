@@ -14,8 +14,10 @@ namespace nobnak.Blending {
 		public const int DEPTH_BLEND = 91;
 		public const int DEPTH_MASK = 92;
 		public const int WINDOW_ID = 0;
+		public const int NUM_RECTS = 4;
 
 		public const string SHADER_GAMMA = "_Gamma";
+		public const string SHADER_RECTS = "_Rects";
 		public static readonly Vector2 WINDOW_SIZE = new Vector2(500f, 300f);
 		public static readonly GUILayoutOption TEXT_WIDTH = GUILayout.Width(60f);
 
@@ -48,6 +50,8 @@ namespace nobnak.Blending {
 		private GameObject _maskCam;
 		private GameObject _maskObj;
 		private Mesh _maskMesh;
+		private Vector4[] _rects;
+		private string[] _rectNames;
 
 		private int _debugMode = 0;
 		private int _nCols;
@@ -63,6 +67,7 @@ namespace nobnak.Blending {
 		private int _selectedMask = 0;
 		private UIFloat _uiUvU;
 		private UIFloat _uiUvV;
+		private GUIVector[] _guiRects;
 
 		void OnDisable() {
 			Destroy(_capture.gameObject);
@@ -93,9 +98,11 @@ namespace nobnak.Blending {
 			}
 			
 			blendMat.mainTexture = _capture.GetTarget();
-			maskMat.mainTexture = _blend.GetTarget();
 			blendMat.SetFloat(SHADER_GAMMA, 1f / data.Gamma);
 			_blendObj.renderer.sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
+			maskMat.mainTexture = _blend.GetTarget();
+			for (var i = 0; i < _rects.Length; i++)
+				maskMat.SetVector(_rectNames[i], _rects[i]);
 		}
 		void OnGUI() {
 			if (_debugMode == 0)
@@ -131,12 +138,16 @@ namespace nobnak.Blending {
 			for (var i = 0; i < _uiVBlendings.Length; i++)
 				_uiVBlendings[i].StrValue = GUILayout.TextField(_uiVBlendings[i].StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal();
+			
+			GUILayout.Label("---- Rect Mask ----");
+			for (var i = 0; i < _guiRects.Length; i++)
+				_rects[i] = _guiRects[i].Draw();
 			GUILayout.EndVertical();
 
 			GUILayout.FlexibleSpace();
 
 			GUILayout.BeginVertical(GUILayout.Width(WINDOW_SIZE.x * 0.45f));
-			GUILayout.Label("---- Mask ----");
+			GUILayout.Label("---- Boundary Mask ----");
 			GUILayout.Label("Select Screen");
 			var tmpSelectedMask = GUILayout.SelectionGrid(_selectedMask, _maskSelections, _nCols);
 			if (tmpSelectedMask != _selectedMask) {
@@ -233,6 +244,11 @@ namespace nobnak.Blending {
 				_maskObj.AddComponent<MeshRenderer>().sharedMaterial = maskMat;
 				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
 				_maskMesh.MarkDynamic();
+			}
+			if (_rectNames == null) {
+				_rectNames = new string[NUM_RECTS];
+				for (var i = 0; i < _rectNames.Length; i++)
+					_rectNames[i] = string.Format("{0}{1:d}", SHADER_RECTS, i);
 			}
 
 			data.CheckInit();
@@ -401,6 +417,9 @@ namespace nobnak.Blending {
 				_uiGamma = new UIFloat(data.Gamma);
 				_uiMasks = new UIFloat[8];
 				LoadMask(SelectedScreen());
+				_guiRects = new GUIVector[data.Rects.Length];
+				for (var i = 0; i < _guiRects.Length; i++)
+					_guiRects[i].InitOnce(string.Format("{0}", i), data.Rects[i]);
 			}
 
 			_uiN.Value = Mathf.Clamp(_uiN.Value, 1, 4);
@@ -442,12 +461,14 @@ namespace nobnak.Blending {
 
 		void Load() {
 			var path = Path.Combine(Application.streamingAssetsPath, config);
-			if (File.Exists(path))
+			if (File.Exists(path)) {
 				JsonConvert.PopulateObject(File.ReadAllText(path), data);
+			}
 		}
 		void Save() {
-			using (var writer = new StreamWriter(Path.Combine(Application.streamingAssetsPath, config)))
+			using (var writer = new StreamWriter(Path.Combine(Application.streamingAssetsPath, config))) {
 				writer.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
+			}
 		}
 
 		int SelectedScreen() {
@@ -495,6 +516,7 @@ namespace nobnak.Blending {
 			public float Gamma;
 
 			public Mask[] Masks;
+			public float[] Rects;
 
 			public Data() { Reset(1, 1); }
 
@@ -506,6 +528,8 @@ namespace nobnak.Blending {
 				var nRows = RowOverlaps.Length + 1;
 				if (Masks == null || Masks.Length != (nCols * nRows))
 					Reset(nCols, nRows);
+				if (Rects == null || Rects.Length != 4 * NUM_RECTS)
+					Rects = new float[4 * NUM_RECTS];
 			}
 			public void Reset(int nCols, int nRows) {
 				ColOverlaps = new float[nCols - 1];
