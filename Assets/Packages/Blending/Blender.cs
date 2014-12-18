@@ -245,13 +245,16 @@ namespace nobnak.Blending {
 				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
 				_maskMesh.MarkDynamic();
 			}
-			if (_rectNames == null) {
+			if (_rects == null) {
+				_rects = new Vector4[NUM_RECTS];
 				_rectNames = new string[NUM_RECTS];
-				for (var i = 0; i < _rectNames.Length; i++)
+				for (var i = 0; i < _rectNames.Length; i++) {
+					var j = 4 * i;
+					_rects[i] = new Vector4(data.Rects[j], data.Rects[j+1], data.Rects[j+2], data.Rects[j+3]);
 					_rectNames[i] = string.Format("{0}{1:d}", SHADER_RECTS, i);
+				}
 			}
 
-			data.CheckInit();
 			_nCols = data.ColOverlaps.Length + 1;
 			_nRows = data.RowOverlaps.Length + 1;
 
@@ -417,9 +420,9 @@ namespace nobnak.Blending {
 				_uiGamma = new UIFloat(data.Gamma);
 				_uiMasks = new UIFloat[8];
 				LoadMask(SelectedScreen());
-				_guiRects = new GUIVector[data.Rects.Length];
+				_guiRects = new GUIVector[_rects.Length];
 				for (var i = 0; i < _guiRects.Length; i++)
-					_guiRects[i].InitOnce(string.Format("{0}", i), data.Rects[i]);
+					_guiRects[i].InitOnce(string.Format("{0}", i), _rects[i]);
 			}
 
 			_uiN.Value = Mathf.Clamp(_uiN.Value, 1, 4);
@@ -457,6 +460,12 @@ namespace nobnak.Blending {
 					for (var x = 0; x < _nCols; x++)
 						_maskSelections[i++] = string.Format("{0},{1}", x, y);
 			}
+
+			for (var i = 0; i < _rects.Length; i++) {
+				var rect = _rects[i];
+				for (var j = 0; j < 4; j++)
+					data.Rects[4 * i + j] = rect[j];
+			}
 		}
 
 		void Load() {
@@ -464,6 +473,7 @@ namespace nobnak.Blending {
 			if (File.Exists(path)) {
 				JsonConvert.PopulateObject(File.ReadAllText(path), data);
 			}
+			data.CheckInit();
 		}
 		void Save() {
 			using (var writer = new StreamWriter(Path.Combine(Application.streamingAssetsPath, config))) {
