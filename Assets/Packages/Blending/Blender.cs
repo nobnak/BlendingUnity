@@ -8,11 +8,13 @@ using nobnak.Json;
 namespace nobnak.Blending {
 
 	public class Blender : MonoBehaviour {
-		public const int LAYER_BLEND = 30;
-		public const int LAYER_MASK = 31;
+		public const int LAYER_BLEND = 29;
+		public const int LAYER_MASK = 30;
+		public const int LAYER_OCCLUSION = 31;
 		public const int DEPTH_CAPTURE = 90;
 		public const int DEPTH_BLEND = 91;
 		public const int DEPTH_MASK = 92;
+		public const int DEPTH_OCCLUSION = 93;
 		public const int WINDOW_ID = 0;
 		public const int NUM_RECTS = 4;
 
@@ -40,6 +42,7 @@ namespace nobnak.Blending {
 		public Data data;
 		public Material blendMat;
 		public Material maskMat;
+		public Material occlusionMat;
 		public Material vcolorMat;
 		public KeyCode debugKey = KeyCode.E;
 
@@ -50,6 +53,9 @@ namespace nobnak.Blending {
 		private GameObject _maskCam;
 		private GameObject _maskObj;
 		private Mesh _maskMesh;
+		private GameObject _occlusionCam;
+		private GameObject _occlusionObj;
+		private Mesh _occlusionMesh;
 		private Vector4[] _rects;
 		private string[] _rectNames;
 
@@ -244,6 +250,29 @@ namespace nobnak.Blending {
 				_maskObj.AddComponent<MeshRenderer>().sharedMaterial = maskMat;
 				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
 				_maskMesh.MarkDynamic();
+			}
+			if (_occlusionCam == null) {
+				_occlusionCam = new GameObject("Occulusion Camera", typeof(Camera));
+				_occlusionCam.transform.parent = transform;
+				_occlusionCam.transform.localPosition = new Vector3(0f, 0f, -1f);
+				_occlusionCam.transform.localRotation = Quaternion.identity;
+				_occlusionCam.camera.depth = DEPTH_OCCLUSION;
+				_occlusionCam.camera.orthographic = true;
+				_occlusionCam.camera.orthographicSize = 0.5f;
+				_occlusionCam.camera.aspect = 1f;
+				_occlusionCam.camera.clearFlags = CameraClearFlags.SolidColor;
+				_occlusionCam.camera.backgroundColor = Color.clear;
+			}
+			if (_occlusionObj == null) {
+				_occlusionObj = new GameObject("Occulusion Obj");
+				_occlusionObj.transform.parent = transform;
+				_occlusionObj.transform.localPosition = new Vector3(-0.5f, -0.5f, 0f);
+				_occlusionObj.transform.localRotation = Quaternion.identity;
+				_occlusionObj.transform.localScale = Vector3.one;
+				_occlusionObj.layer = LAYER_MASK;
+				_occlusionObj.AddComponent<MeshRenderer>().sharedMaterial = occlusionMat;
+				_occlusionObj.AddComponent<MeshFilter>().sharedMesh = _occlusionMesh = new Mesh();
+				_occlusionMesh.MarkDynamic();
 			}
 			if (_rects == null) {
 				_rects = new Vector4[NUM_RECTS];
