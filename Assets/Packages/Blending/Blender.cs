@@ -48,9 +48,9 @@ namespace nobnak.Blending {
 
 		private Capture _capture;
 		private Capture _blend;
+		private Capture _mask;
 		private GameObject _blendObj;
 		private Mesh _blendMesh;
-		private GameObject _maskCam;
 		private GameObject _maskObj;
 		private Mesh _maskMesh;
 		private GameObject _occlusionCam;
@@ -74,15 +74,18 @@ namespace nobnak.Blending {
 		private UIFloat _uiUvU;
 		private UIFloat _uiUvV;
 		private GUIVector[] _guiRects;
+		private GUIVector _guiOcclusion;
 
 		void OnDisable() {
 			Destroy(_capture.gameObject);
 			Destroy(_blend.gameObject);
 			Destroy(_blendObj);
 			Destroy(_blendMesh);
-			Destroy(_maskCam);
+			Destroy(_mask.gameObject);
 			Destroy(_maskObj);
 			Destroy(_maskMesh);
+			Destroy(_occlusionCam);
+			Destroy(_occlusionObj);
 		}
 		void OnEnable() {
 			Load();
@@ -109,6 +112,7 @@ namespace nobnak.Blending {
 			maskMat.mainTexture = _blend.GetTarget();
 			for (var i = 0; i < _rects.Length; i++)
 				maskMat.SetVector(_rectNames[i], _rects[i]);
+			occlusionMat.mainTexture = _mask.GetTarget();
 		}
 		void OnGUI() {
 			if (_debugMode == 0)
@@ -159,7 +163,7 @@ namespace nobnak.Blending {
 			if (tmpSelectedMask != _selectedMask) {
 				_selectedMask = tmpSelectedMask;
 				var selScreen = SelectedScreen();
-				LoadMask(selScreen);
+				LoadScreenData(selScreen);
 			}
 
 			GUILayout.BeginHorizontal();
@@ -188,8 +192,10 @@ namespace nobnak.Blending {
 			_uiUvU.StrValue = GUILayout.TextField(_uiUvU.StrValue, TEXT_WIDTH);
 			_uiUvV.StrValue = GUILayout.TextField(_uiUvV.StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal();
-			GUILayout.EndVertical();
 
+			_guiOcclusion.Draw();
+
+			GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
 
 			UnityEngine.GUI.DragWindow();
@@ -228,22 +234,23 @@ namespace nobnak.Blending {
 				_blendMesh.MarkDynamic ();
 			}
 
-			if (_maskCam == null) {
-				_maskCam = new GameObject("Mask Camera", typeof(Camera));
-				_maskCam.transform.parent = transform;
-				_maskCam.transform.localPosition = new Vector3(0f, 0f, -1f);
-				_maskCam.transform.localRotation = Quaternion.identity;
-				_maskCam.camera.depth = DEPTH_MASK;
-				_maskCam.camera.orthographic = true;
-				_maskCam.camera.orthographicSize = 0.5f;
-				_maskCam.camera.aspect = 1f;
-				_maskCam.camera.clearFlags = CameraClearFlags.SolidColor;
-				_maskCam.camera.backgroundColor = Color.clear;
+			if (_mask == null) {
+				var maskCam = new GameObject("Mask Camera", typeof(Camera), typeof(Capture));
+				maskCam.transform.parent = transform;
+				maskCam.transform.localPosition = new Vector3(2f, 0f, -1f);
+				maskCam.transform.localRotation = Quaternion.identity;
+				maskCam.camera.depth = DEPTH_MASK;
+				maskCam.camera.orthographic = true;
+				maskCam.camera.orthographicSize = 0.5f;
+				maskCam.camera.aspect = 1f;
+				maskCam.camera.clearFlags = CameraClearFlags.SolidColor;
+				maskCam.camera.backgroundColor = Color.clear;
+				_mask = maskCam.GetComponent<Capture>();
 			}
 			if (_maskObj == null) {
 				_maskObj = new GameObject("Mask Obj");
 				_maskObj.transform.parent = transform;
-				_maskObj.transform.localPosition = new Vector3(-0.5f, -0.5f, 0f);
+				_maskObj.transform.localPosition = new Vector3(1.5f, -0.5f, 0f);
 				_maskObj.transform.localRotation = Quaternion.identity;
 				_maskObj.transform.localScale = Vector3.one;
 				_maskObj.layer = LAYER_MASK;
@@ -251,11 +258,10 @@ namespace nobnak.Blending {
 				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
 				_maskMesh.MarkDynamic();
 			}
-#if false
 			if (_occlusionCam == null) {
 				_occlusionCam = new GameObject("Occulusion Camera", typeof(Camera));
 				_occlusionCam.transform.parent = transform;
-				_occlusionCam.transform.localPosition = new Vector3(0f, 0f, -1f);
+				_occlusionCam.transform.localPosition = new Vector3(4f, 0f, -1f);
 				_occlusionCam.transform.localRotation = Quaternion.identity;
 				_occlusionCam.camera.depth = DEPTH_OCCLUSION;
 				_occlusionCam.camera.orthographic = true;
@@ -267,15 +273,15 @@ namespace nobnak.Blending {
 			if (_occlusionObj == null) {
 				_occlusionObj = new GameObject("Occulusion Obj");
 				_occlusionObj.transform.parent = transform;
-				_occlusionObj.transform.localPosition = new Vector3(-0.5f, -0.5f, 0f);
+				_occlusionObj.transform.localPosition = new Vector3(3.5f, -0.5f, 0f);
 				_occlusionObj.transform.localRotation = Quaternion.identity;
 				_occlusionObj.transform.localScale = Vector3.one;
-				_occlusionObj.layer = LAYER_MASK;
+				_occlusionObj.layer = LAYER_OCCLUSION;
 				_occlusionObj.AddComponent<MeshRenderer>().sharedMaterial = occlusionMat;
 				_occlusionObj.AddComponent<MeshFilter>().sharedMesh = _occlusionMesh = new Mesh();
 				_occlusionMesh.MarkDynamic();
 			}
-#endif
+
 			if (_rects == null) {
 				_rects = new Vector4[NUM_RECTS];
 				_rectNames = new string[NUM_RECTS];
@@ -289,17 +295,18 @@ namespace nobnak.Blending {
 			_nCols = data.ColOverlaps.Length + 1;
 			_nRows = data.RowOverlaps.Length + 1;
 
-			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK);
+			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK) | (1 << LAYER_OCCLUSION);
 			foreach (var cam in Camera.allCameras)
 				cam.cullingMask &= ~layerFlags;
 			_blend.camera.cullingMask = 1 << LAYER_BLEND;
-			_maskCam.camera.cullingMask = 1 << LAYER_MASK;
+			_mask.camera.cullingMask = 1 << LAYER_MASK;
+			_occlusionCam.camera.cullingMask = 1 << LAYER_OCCLUSION;
 		}
 
 		void UpdateMesh() {
 			UpdateBlendMesh();
 			UpdateMaskMesh();
-			//UpdateOcclusionMesh();
+			UpdateOcclusionMesh();
 		}
 
 		void UpdateBlendMesh() {
@@ -471,12 +478,13 @@ namespace nobnak.Blending {
 						new Vector2(0f, 1f),       new Vector2(inside.x, 1f),       new Vector2(inside.z, 1f),       new Vector2(1f, 1f)
 					};
 					for (var i = 0; i < 16; i++) {
-						vertices[iv + i] = (Vector3)(offset + Vector2.Scale(uvsScreen[i], screenSize));
-						uv[iv + i] = uvsScreen[i];
+						var currUv = offset + Vector2.Scale(uvsScreen[i], screenSize);
+						vertices[iv + i] = (Vector3)currUv;
+						uv[iv + i] = currUv;
 						uv2[iv + i] = UV2[i];
 					}
 					for (var i = 0; i < 54; i++)
-						triangles[it + i] = SCREEN_INDICES[i];
+						triangles[it + i] = iv + SCREEN_INDICES[i];
 				}
 			}
 
@@ -498,7 +506,7 @@ namespace nobnak.Blending {
 				_uiVBlendings = new UIFloat[0];
 				_uiGamma = new UIFloat(data.Gamma);
 				_uiMasks = new UIFloat[8];
-				LoadMask(SelectedScreen());
+				LoadScreenData(SelectedScreen());
 				_guiRects = new GUIVector[_rects.Length];
 				for (var i = 0; i < _guiRects.Length; i++)
 					_guiRects[i].InitOnce(string.Format("{0}", i), _rects[i]);
@@ -529,7 +537,7 @@ namespace nobnak.Blending {
 
 			data.Gamma = _uiGamma.Value;
 
-			SaveMask(SelectedScreen());
+			SaveScreenData(SelectedScreen());
 
 			var nScreens = _nCols * _nRows;
 			if (_maskSelections == null || _maskSelections.Length != nScreens) {
@@ -567,7 +575,7 @@ namespace nobnak.Blending {
 			return selScreen;
 		}
 
-		void SaveMask (int selScreen) {
+		void SaveScreenData (int selScreen) {
 			var mask = data.Masks [selScreen];
 
 			for (var i = 0; i < _uiMasks.Length; i++)
@@ -581,9 +589,12 @@ namespace nobnak.Blending {
 			mask.uvOffset = new Vector2(_uiUvU.Value, _uiUvV.Value);
 
 			data.Masks [selScreen] = mask;
+
+			var occlusion = data.Occlusions[selScreen];
+			occlusion.inside = _guiOcclusion.Data.Value;
 		}
 
-		void LoadMask(int selScreen) {
+		void LoadScreenData(int selScreen) {
 			var mask = data.Masks [selScreen];
 			_uiMasks [0] = new UIFloat (mask.bl.x);
 			_uiMasks [1] = new UIFloat (mask.bl.y);
@@ -596,6 +607,10 @@ namespace nobnak.Blending {
 
 			_uiUvU = new UIFloat(mask.uvOffset.x);
 			_uiUvV = new UIFloat(mask.uvOffset.y);
+
+			var occlusion = data.Occlusions[selScreen];
+			_guiOcclusion.Invalidate();
+			_guiOcclusion.InitOnce("Occlusion", occlusion.inside);
 		}
 
 		[System.Serializable]

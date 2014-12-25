@@ -9,8 +9,9 @@ namespace nobnak.Blending {
 
 		void OnDisable() {
 			Destroy(_rtex);
+			_rtex = null;
 		}
-		void OnEnable() {
+		void Awake() {
 			camera.cullingMask = 0;
 			camera.clearFlags = CameraClearFlags.Nothing;
 		}

@@ -1,4 +1,4 @@
-﻿Shader "Custom/Blend" {
+﻿Shader "Custom/Occlusion" {
 	Properties {
 		_MainTex ("Main Texture", 2D) = "black" {}
 		_Gamma ("Gamma", Float) = 1
