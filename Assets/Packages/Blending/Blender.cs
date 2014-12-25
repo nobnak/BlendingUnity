@@ -251,6 +251,7 @@ namespace nobnak.Blending {
 				_maskObj.AddComponent<MeshFilter>().sharedMesh = _maskMesh = new Mesh();
 				_maskMesh.MarkDynamic();
 			}
+#if false
 			if (_occlusionCam == null) {
 				_occlusionCam = new GameObject("Occulusion Camera", typeof(Camera));
 				_occlusionCam.transform.parent = transform;
@@ -274,6 +275,7 @@ namespace nobnak.Blending {
 				_occlusionObj.AddComponent<MeshFilter>().sharedMesh = _occlusionMesh = new Mesh();
 				_occlusionMesh.MarkDynamic();
 			}
+#endif
 			if (_rects == null) {
 				_rects = new Vector4[NUM_RECTS];
 				_rectNames = new string[NUM_RECTS];
@@ -297,13 +299,13 @@ namespace nobnak.Blending {
 		void UpdateMesh() {
 			UpdateBlendMesh();
 			UpdateMaskMesh();
+			//UpdateOcclusionMesh();
 		}
 
 		void UpdateBlendMesh() {
 			var nScreens = _nRows * _nCols;
-			var nVertices = 16 * nScreens;
 			var nIndices = 54 * nScreens;
-			if (_blendMesh.vertexCount != nVertices) {
+			if (_blendMesh.vertexCount != nIndices) {
 				_blendMesh.Clear ();
 				_blendMesh.vertices = new Vector3[nIndices];
 				_blendMesh.uv = new Vector2[nIndices];
@@ -437,6 +439,54 @@ namespace nobnak.Blending {
 			_maskMesh.triangles = triangles;
 			_maskMesh.RecalculateBounds ();
 		}
+		void UpdateOcclusionMesh() {
+			var nScreens = _nRows * _nCols;
+			var nVertices = 16 * nScreens;
+			var nIndices = 54 * nScreens;
+			if (_occlusionMesh.vertexCount != nVertices) {
+				_occlusionMesh.Clear ();
+				_occlusionMesh.vertices = new Vector3[nVertices];
+				_occlusionMesh.uv = new Vector2[nVertices];
+				_occlusionMesh.uv2 = new Vector2[nVertices];
+				_occlusionMesh.triangles = new int[nIndices];
+			}
+
+			var vertices = _occlusionMesh.vertices;
+			var uv = _occlusionMesh.uv;
+			var uv2 = _occlusionMesh.uv2;
+			var triangles = _occlusionMesh.triangles;
+			var screenSize = new Vector2(1f / _nCols, 1f / _nRows);
+			for (var y = 0; y < _nRows; y++) {
+				for (var x = 0; x < _nCols; x++) {
+					var iv = 16 * (x + y * _nCols);
+					var it = 54 * (x + y * _nCols);
+					var iScreen = x + y * _nCols;
+					var occlusion = data.Occlusions[iScreen];
+					var inside = occlusion.inside;
+					var offset = new Vector2(x * screenSize.x, y * screenSize.y);
+					var uvsScreen = new Vector2[] {
+						new Vector2(0f, 0f),       new Vector2(inside.x, 0f),       new Vector2(inside.z, 0f),       new Vector2(1f, 0f),
+						new Vector2(0f, inside.y), new Vector2(inside.x, inside.y), new Vector2(inside.z, inside.y), new Vector2(1f, inside.y),
+						new Vector2(0f, inside.w), new Vector2(inside.x, inside.w), new Vector2(inside.z, inside.w), new Vector2(1f, inside.w),
+						new Vector2(0f, 1f),       new Vector2(inside.x, 1f),       new Vector2(inside.z, 1f),       new Vector2(1f, 1f)
+					};
+					for (var i = 0; i < 16; i++) {
+						vertices[iv + i] = (Vector3)(offset + Vector2.Scale(uvsScreen[i], screenSize));
+						uv[iv + i] = uvsScreen[i];
+						uv2[iv + i] = UV2[i];
+					}
+					for (var i = 0; i < 54; i++)
+						triangles[it + i] = SCREEN_INDICES[i];
+				}
+			}
+
+			_occlusionMesh.vertices = vertices;
+			_occlusionMesh.uv = uv;
+			_occlusionMesh.uv2 = uv2;
+			_occlusionMesh.triangles = triangles;
+			_occlusionMesh.RecalculateBounds();
+			_occlusionMesh.RecalculateNormals();
+		}
 
 		void UpdateGUI () {
 			if (_uiN == null) {
@@ -556,6 +606,7 @@ namespace nobnak.Blending {
 
 			public Mask[] Masks;
 			public float[] Rects;
+			public Occlusion[] Occlusions;
 
 			public Data() { Reset(1, 1); }
 
@@ -565,10 +616,10 @@ namespace nobnak.Blending {
 
 				var nCols = ColOverlaps.Length + 1;
 				var nRows = RowOverlaps.Length + 1;
-				if (Masks == null || Masks.Length != (nCols * nRows))
+				if (Masks == null || Masks.Length != (nCols * nRows)
+				    || Rects == null || Rects.Length != 4 * NUM_RECTS
+				    || Occlusions == null || Occlusions.Length != (nCols * nRows))
 					Reset(nCols, nRows);
-				if (Rects == null || Rects.Length != 4 * NUM_RECTS)
-					Rects = new float[4 * NUM_RECTS];
 			}
 			public void Reset(int nCols, int nRows) {
 				ColOverlaps = new float[nCols - 1];
@@ -579,6 +630,12 @@ namespace nobnak.Blending {
 				Masks = new Mask[nCols * nRows];
 				for (var i = 0; i < Masks.Length; i++)
 					Masks[i] = new Mask(Vector2.zero, Vector2.one);
+				
+				Rects = new float[4 * NUM_RECTS];
+
+				Occlusions = new Occlusion[nCols * nRows];
+				for (var i = 0; i < Occlusions.Length; i++)
+					Occlusions[i] = new Occlusion();
 			}
 
 			[System.Serializable]
@@ -595,6 +652,16 @@ namespace nobnak.Blending {
 					this.tr = bottomLeft + screenSize;
 
 					this.uvOffset = Vector2.zero;
+				}
+			}
+
+			[System.Serializable]
+			public class Occlusion {
+				[JsonConverter(typeof(VectorJsonConverter))]
+				public Vector4 inside;
+
+				public Occlusion() {
+					this.inside = new Vector4(0f, 0f, 1f, 1f);
 				}
 			}
 		}
