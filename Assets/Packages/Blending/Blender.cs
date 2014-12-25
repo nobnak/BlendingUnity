@@ -637,6 +637,12 @@ namespace nobnak.Blending {
 					Reset(nCols, nRows);
 			}
 			public void Reset(int nCols, int nRows) {
+				var oldColOverlaps = ColOverlaps;
+				var oldRowOverlaps = RowOverlaps;
+				var oldMasks = Masks;
+				var oldRects = Rects;
+				var oldOcclusions = Occlusions;
+
 				ColOverlaps = new float[nCols - 1];
 				RowOverlaps = new float[nRows - 1];
 
@@ -651,6 +657,17 @@ namespace nobnak.Blending {
 				Occlusions = new Occlusion[nCols * nRows];
 				for (var i = 0; i < Occlusions.Length; i++)
 					Occlusions[i] = new Occlusion();
+
+				if (oldColOverlaps != null)
+					System.Array.Copy(oldColOverlaps, ColOverlaps, Mathf.Min(oldColOverlaps.Length, ColOverlaps.Length));
+				if (oldRowOverlaps != null)
+					System.Array.Copy(oldRowOverlaps, RowOverlaps, Mathf.Min(oldRowOverlaps.Length, RowOverlaps.Length));
+				if (oldMasks != null)
+					System.Array.Copy(oldMasks, Masks, Mathf.Min(oldMasks.Length, Masks.Length));
+				if (oldRects != null)
+					System.Array.Copy(oldRects, Rects, Mathf.Min(oldRects.Length, Rects.Length));
+				if (oldOcclusions != null)
+					System.Array.Copy(oldOcclusions, Occlusions, Mathf.Min(oldOcclusions.Length, Occlusions.Length));
 			}
 
 			[System.Serializable]
