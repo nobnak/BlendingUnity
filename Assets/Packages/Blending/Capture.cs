@@ -12,8 +12,8 @@ namespace nobnak.Blending {
 			_rtex = null;
 		}
 		void Awake() {
-			camera.cullingMask = 0;
-			camera.clearFlags = CameraClearFlags.Nothing;
+			GetComponent<Camera>().cullingMask = 0;
+			GetComponent<Camera>().clearFlags = CameraClearFlags.Nothing;
 		}
 		void OnRenderImage(RenderTexture src, RenderTexture dst) {
 			if (_rtex == null)

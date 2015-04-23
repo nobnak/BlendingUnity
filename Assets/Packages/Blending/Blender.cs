@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
-using nobnak.GUI;
-using Newtonsoft.Json;
 using System.IO;
-using nobnak.Json;
+using nobnak.GUI;
+using System.Xml.Serialization;
 
 namespace nobnak.Blending {
 
@@ -95,7 +94,7 @@ namespace nobnak.Blending {
 		void Update() {
 			if (Input.GetKeyDown(debugKey)) { 
 				_debugMode = ++_debugMode % 3;
-				Screen.showCursor = (_debugMode != 0);
+				Cursor.visible = (_debugMode != 0);
 				if (_debugMode == 0)
 					Save();
 			}
@@ -108,7 +107,7 @@ namespace nobnak.Blending {
 			
 			blendMat.mainTexture = _capture.GetTarget();
 			blendMat.SetFloat(SHADER_GAMMA, 1f / data.Gamma);
-			_blendObj.renderer.sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
+			_blendObj.GetComponent<Renderer>().sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
 			maskMat.mainTexture = _blend.GetTarget();
 			for (var i = 0; i < _rects.Length; i++)
 				maskMat.SetVector(_rectNames[i], _rects[i]);
@@ -205,7 +204,7 @@ namespace nobnak.Blending {
 			if (_capture == null) {
 				var captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
 				captureCam.transform.parent = transform;
-				captureCam.camera.depth = DEPTH_CAPTURE;
+				captureCam.GetComponent<Camera>().depth = DEPTH_CAPTURE;
 				_capture = captureCam.GetComponent<Capture> ();
 			}
 
@@ -214,12 +213,12 @@ namespace nobnak.Blending {
 				blendCam.transform.parent = transform;
 				blendCam.transform.localPosition = new Vector3 (0f, 0f, -1f);
 				blendCam.transform.localRotation = Quaternion.identity;
-				blendCam.camera.depth = DEPTH_BLEND;
-				blendCam.camera.orthographic = true;
-				blendCam.camera.orthographicSize = 0.5f;
-				blendCam.camera.aspect = 1f;
-				blendCam.camera.clearFlags = CameraClearFlags.SolidColor;
-				blendCam.camera.backgroundColor = Color.clear;
+				blendCam.GetComponent<Camera>().depth = DEPTH_BLEND;
+				blendCam.GetComponent<Camera>().orthographic = true;
+				blendCam.GetComponent<Camera>().orthographicSize = 0.5f;
+				blendCam.GetComponent<Camera>().aspect = 1f;
+				blendCam.GetComponent<Camera>().clearFlags = CameraClearFlags.SolidColor;
+				blendCam.GetComponent<Camera>().backgroundColor = Color.clear;
 				_blend = blendCam.GetComponent<Capture>();
 			}
 			if (_blendObj == null) {
@@ -239,12 +238,12 @@ namespace nobnak.Blending {
 				maskCam.transform.parent = transform;
 				maskCam.transform.localPosition = new Vector3(2f, 0f, -1f);
 				maskCam.transform.localRotation = Quaternion.identity;
-				maskCam.camera.depth = DEPTH_MASK;
-				maskCam.camera.orthographic = true;
-				maskCam.camera.orthographicSize = 0.5f;
-				maskCam.camera.aspect = 1f;
-				maskCam.camera.clearFlags = CameraClearFlags.SolidColor;
-				maskCam.camera.backgroundColor = Color.clear;
+				maskCam.GetComponent<Camera>().depth = DEPTH_MASK;
+				maskCam.GetComponent<Camera>().orthographic = true;
+				maskCam.GetComponent<Camera>().orthographicSize = 0.5f;
+				maskCam.GetComponent<Camera>().aspect = 1f;
+				maskCam.GetComponent<Camera>().clearFlags = CameraClearFlags.SolidColor;
+				maskCam.GetComponent<Camera>().backgroundColor = Color.clear;
 				_mask = maskCam.GetComponent<Capture>();
 			}
 			if (_maskObj == null) {
@@ -263,12 +262,12 @@ namespace nobnak.Blending {
 				_occlusionCam.transform.parent = transform;
 				_occlusionCam.transform.localPosition = new Vector3(4f, 0f, -1f);
 				_occlusionCam.transform.localRotation = Quaternion.identity;
-				_occlusionCam.camera.depth = DEPTH_OCCLUSION;
-				_occlusionCam.camera.orthographic = true;
-				_occlusionCam.camera.orthographicSize = 0.5f;
-				_occlusionCam.camera.aspect = 1f;
-				_occlusionCam.camera.clearFlags = CameraClearFlags.SolidColor;
-				_occlusionCam.camera.backgroundColor = Color.clear;
+				_occlusionCam.GetComponent<Camera>().depth = DEPTH_OCCLUSION;
+				_occlusionCam.GetComponent<Camera>().orthographic = true;
+				_occlusionCam.GetComponent<Camera>().orthographicSize = 0.5f;
+				_occlusionCam.GetComponent<Camera>().aspect = 1f;
+				_occlusionCam.GetComponent<Camera>().clearFlags = CameraClearFlags.SolidColor;
+				_occlusionCam.GetComponent<Camera>().backgroundColor = Color.clear;
 			}
 			if (_occlusionObj == null) {
 				_occlusionObj = new GameObject("Occulusion Obj");
@@ -298,9 +297,9 @@ namespace nobnak.Blending {
 			var layerFlags = (1 << LAYER_BLEND) | (1 << LAYER_MASK) | (1 << LAYER_OCCLUSION);
 			foreach (var cam in Camera.allCameras)
 				cam.cullingMask &= ~layerFlags;
-			_blend.camera.cullingMask = 1 << LAYER_BLEND;
-			_mask.camera.cullingMask = 1 << LAYER_MASK;
-			_occlusionCam.camera.cullingMask = 1 << LAYER_OCCLUSION;
+			_blend.GetComponent<Camera>().cullingMask = 1 << LAYER_BLEND;
+			_mask.GetComponent<Camera>().cullingMask = 1 << LAYER_MASK;
+			_occlusionCam.GetComponent<Camera>().cullingMask = 1 << LAYER_OCCLUSION;
 		}
 
 		void UpdateMesh() {
@@ -558,13 +557,17 @@ namespace nobnak.Blending {
 		void Load() {
 			var path = Path.Combine(Application.streamingAssetsPath, config);
 			if (File.Exists(path)) {
-				JsonConvert.PopulateObject(File.ReadAllText(path), data);
+				var serializer = Data.GetXmlSerializer();
+				using (var reader = new StreamReader(path)) {
+					data = (Data)serializer.Deserialize(reader);
+				}
 			}
 			data.CheckInit();
 		}
 		void Save() {
 			using (var writer = new StreamWriter(Path.Combine(Application.streamingAssetsPath, config))) {
-				writer.Write(JsonConvert.SerializeObject(data, Formatting.Indented));
+				var serializer = Data.GetXmlSerializer();
+				serializer.Serialize(writer, data);
 			}
 		}
 
@@ -670,12 +673,17 @@ namespace nobnak.Blending {
 					System.Array.Copy(oldOcclusions, Occlusions, Mathf.Min(oldOcclusions.Length, Occlusions.Length));
 			}
 
+			public static XmlSerializer GetXmlSerializer() {
+				return new XmlSerializer(typeof(Data));
+			}
+
 			[System.Serializable]
 			public class Mask {
-				[JsonConverter(typeof(VectorJsonConverter))]
 				public Vector2 bl, br, tl, tr;
-				[JsonConverter(typeof(VectorJsonConverter))]
 				public Vector2 uvOffset;
+
+				public Mask() {
+				}
 
 				public Mask(Vector2 bottomLeft, Vector2 screenSize) {
 					this.bl = bottomLeft;
@@ -689,7 +697,6 @@ namespace nobnak.Blending {
 
 			[System.Serializable]
 			public class Occlusion {
-				[JsonConverter(typeof(VectorJsonConverter))]
 				public Vector4 inside;
 
 				public Occlusion() {
