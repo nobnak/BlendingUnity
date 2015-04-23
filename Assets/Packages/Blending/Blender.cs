@@ -203,7 +203,7 @@ namespace nobnak.Blending {
 		void CheckInit () {
 			if (_capture == null) {
 				var captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
-				captureCam.transform.parent = transform;
+				captureCam.transform.SetParent(transform, false);
 				captureCam.GetComponent<Camera>().depth = DEPTH_CAPTURE;
 				_capture = captureCam.GetComponent<Capture> ();
 			}
