@@ -1,5 +1,6 @@
 Edge Blending for Unity
 =============
+[Unity Package](EdgeBlending.unitypackage)
 
 ## 3 x 1
 ![3x1](Html/Img/3x1_asyn.jpg)
