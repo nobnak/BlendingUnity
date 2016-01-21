@@ -511,8 +511,8 @@ namespace nobnak.Blending {
 					_guiRects[i].InitOnce(string.Format("{0}", i), _rects[i]);
 			}
 
-			_uiN.Value = Mathf.Clamp(_uiN.Value, 1, 4);
-			_uiM.Value = Mathf.Clamp(_uiM.Value, 1, 4);
+			_uiN.Value = Mathf.Clamp(_uiN.Value, 1, 10);
+			_uiM.Value = Mathf.Clamp(_uiM.Value, 1, 10);
 			if (_uiN.Value != _nCols || _uiM.Value != _nRows) {
 				_uiN.Value = _nCols = _uiN.Value;
 				_uiM.Value = _nRows = _uiM.Value;

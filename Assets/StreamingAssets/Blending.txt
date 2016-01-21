@@ -1,13 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <RowOverlaps>
-    <float>0</float>
-  </RowOverlaps>
+  <RowOverlaps />
   <ColOverlaps>
-    <float>0</float>
+    <float>0.1</float>
+    <float>0.1</float>
+    <float>0.1</float>
+    <float>0.1</float>
+    <float>0.1</float>
+    <float>0.1</float>
+    <float>0.1</float>
   </ColOverlaps>
   <Gamma>2.2</Gamma>
   <Masks>
+    <Mask>
+      <bl>
+        <x>0</x>
+        <y>0</y>
+      </bl>
+      <br>
+        <x>1</x>
+        <y>0</y>
+      </br>
+      <tl>
+        <x>0</x>
+        <y>1</y>
+      </tl>
+      <tr>
+        <x>1</x>
+        <y>1</y>
+      </tr>
+      <uvOffset>
+        <x>0</x>
+        <y>0</y>
+      </uvOffset>
+    </Mask>
+    <Mask>
+      <bl>
+        <x>0</x>
+        <y>0</y>
+      </bl>
+      <br>
+        <x>1</x>
+        <y>0</y>
+      </br>
+      <tl>
+        <x>0</x>
+        <y>1</y>
+      </tl>
+      <tr>
+        <x>1</x>
+        <y>1</y>
+      </tr>
+      <uvOffset>
+        <x>0</x>
+        <y>0</y>
+      </uvOffset>
+    </Mask>
+    <Mask>
+      <bl>
+        <x>0</x>
+        <y>0</y>
+      </bl>
+      <br>
+        <x>1</x>
+        <y>0</y>
+      </br>
+      <tl>
+        <x>0</x>
+        <y>1</y>
+      </tl>
+      <tr>
+        <x>1</x>
+        <y>1</y>
+      </tr>
+      <uvOffset>
+        <x>0</x>
+        <y>0</y>
+      </uvOffset>
+    </Mask>
+    <Mask>
+      <bl>
+        <x>0</x>
+        <y>0</y>
+      </bl>
+      <br>
+        <x>1</x>
+        <y>0</y>
+      </br>
+      <tl>
+        <x>0</x>
+        <y>1</y>
+      </tl>
+      <tr>
+        <x>1</x>
+        <y>1</y>
+      </tr>
+      <uvOffset>
+        <x>0</x>
+        <y>0</y>
+      </uvOffset>
+    </Mask>
     <Mask>
       <bl>
         <x>0</x>
@@ -116,6 +208,38 @@
     <float>0</float>
   </Rects>
   <Occlusions>
+    <Occlusion>
+      <inside>
+        <x>0</x>
+        <y>0</y>
+        <z>1</z>
+        <w>1</w>
+      </inside>
+    </Occlusion>
+    <Occlusion>
+      <inside>
+        <x>0</x>
+        <y>0</y>
+        <z>1</z>
+        <w>1</w>
+      </inside>
+    </Occlusion>
+    <Occlusion>
+      <inside>
+        <x>0</x>
+        <y>0</y>
+        <z>1</z>
+        <w>1</w>
+      </inside>
+    </Occlusion>
+    <Occlusion>
+      <inside>
+        <x>0</x>
+        <y>0</y>
+        <z>1</z>
+        <w>1</w>
+      </inside>
+    </Occlusion>
     <Occlusion>
       <inside>
         <x>0</x>
