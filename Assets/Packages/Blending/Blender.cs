@@ -46,35 +46,40 @@ namespace nobnak.Blending {
 		public Material vcolorMat;
 		public KeyCode debugKey = KeyCode.E;
 
-		private Capture _capture;
-		private Capture _blend;
-		private Capture _mask;
-		private GameObject _blendObj;
-		private Mesh _blendMesh;
-		private GameObject _maskObj;
-		private Mesh _maskMesh;
-		private GameObject _occlusionCam;
-		private GameObject _occlusionObj;
-		private Mesh _occlusionMesh;
-		private Vector4[] _rects;
-		private string[] _rectNames;
+		Capture _capture;
+		Capture _blend;
+		Capture _mask;
+		GameObject _blendObj;
+		Mesh _blendMesh;
+		GameObject _maskObj;
+		Mesh _maskMesh;
+		GameObject _occlusionCam;
+		GameObject _occlusionObj;
+		Mesh _occlusionMesh;
+		Vector4[] _rects;
+		string[] _rectNames;
 
-		private int _debugMode = 0;
-		private int _nCols;
-		private int _nRows;
-		private Rect _guiWindowPos;
-		private UIInt _uiN;
-		private UIInt _uiM;
-		private UIFloat[] _uiHBlendings;
-		private UIFloat[] _uiVBlendings;
-		private string _maskImagePath;
-		private UIFloat[] _uiMasks;
-		private string[] _maskSelections;
-		private int _selectedMask = 0;
-		private UIFloat _uiUvU;
-		private UIFloat _uiUvV;
-		private GUIVector[] _guiRects;
-		private GUIVector _guiOcclusion;
+		int _debugMode = 0;
+		int _nCols;
+		int _nRows;
+		Rect _guiWindowPos;
+		UIInt _uiN;
+		UIInt _uiM;
+		UIFloat[] _uiHBlendings;
+		UIFloat[] _uiVBlendings;
+		UIFloat[] _uiMasks;
+		string[] _maskSelections;
+		int _selectedMask = 0;
+		UIFloat _uiUvU;
+		UIFloat _uiUvV;
+		GUIVector[] _guiRects;
+		GUIVector _guiOcclusion;
+
+        bool _maskImageToggle;
+        bool _maskImageLoading = false;
+        string _maskImagePath;
+        Texture _maskImageTex;
+        System.DateTime _maskImageWriteTime = System.DateTime.MinValue;
 
 		void OnDisable () {
 			Destroy (_capture.gameObject);
@@ -86,13 +91,14 @@ namespace nobnak.Blending {
 			Destroy (_maskMesh);
 			Destroy (_occlusionCam);
 			Destroy (_occlusionObj);
+            Destroy (_maskImageTex);
 		}
 
 		void OnEnable () {
 			Load ();
 			CheckInit ();
 			UpdateMesh ();
-			StartCoroutine (LoadMaskImage ());
+            UpdateImage();
 		}
 
 		void Update () {
@@ -105,12 +111,14 @@ namespace nobnak.Blending {
 			if (_debugMode > 0) {
 				CheckInit ();
 				UpdateMesh ();
+                UpdateImage();
 				UpdateGUI ();
 			}
 
 			blendMat.mainTexture = _capture.GetTarget ();
 			_blendObj.GetComponent<Renderer> ().sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
 			maskMat.mainTexture = _blend.GetTarget ();
+            maskMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
 			for (var i = 0; i < _rects.Length; i++)
 				maskMat.SetVector (_rectNames [i], _rects [i]);
 			occlusionMat.mainTexture = _mask.GetTarget ();
@@ -134,11 +142,6 @@ namespace nobnak.Blending {
 			_uiM.StrValue = GUILayout.TextField (_uiM.StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal ();
 
-			GUILayout.BeginHorizontal ();
-			GUILayout.Label ("Mask Image Path");
-			_maskImagePath = GUILayout.TextField (_maskImagePath, TEXT_WIDTH2);
-			GUILayout.EndHorizontal ();
-
 			GUILayout.Label ("Horizontal Blends");
 			GUILayout.BeginHorizontal ();
 			for (var i = 0; i < _uiHBlendings.Length; i++)
@@ -150,6 +153,13 @@ namespace nobnak.Blending {
 			for (var i = 0; i < _uiVBlendings.Length; i++)
 				_uiVBlendings [i].StrValue = GUILayout.TextField (_uiVBlendings [i].StrValue, TEXT_WIDTH);
 			GUILayout.EndHorizontal ();
+
+            GUILayout.Label ("---- Image Mask ----");
+            _maskImageToggle = GUILayout.Toggle (_maskImageToggle, "Enabled");
+            GUILayout.BeginHorizontal ();
+            GUILayout.Label ("Image Path");
+            _maskImagePath = GUILayout.TextField (_maskImagePath, TEXT_WIDTH2);
+            GUILayout.EndHorizontal ();
 
 			GUILayout.Label ("---- Rect Mask ----");
 			for (var i = 0; i < _guiRects.Length; i++)
@@ -513,6 +523,7 @@ namespace nobnak.Blending {
 				_uiM = new UIInt (_nRows);
 				_uiHBlendings = new UIFloat[0];
 				_uiVBlendings = new UIFloat[0];
+                _maskImageToggle = data.MaskImageToggle;
 				_maskImagePath = data.MaskImagePath;
 				_uiMasks = new UIFloat[8];
 				LoadScreenData (SelectedScreen ());
@@ -544,6 +555,7 @@ namespace nobnak.Blending {
 			for (var i = 0; i < _uiVBlendings.Length; i++)
 				data.RowOverlaps [i] = _uiVBlendings [i].Value;
 
+            data.MaskImageToggle = _maskImageToggle;
 			data.MaskImagePath = _maskImagePath;
 
 			SaveScreenData (SelectedScreen ());
@@ -563,6 +575,11 @@ namespace nobnak.Blending {
 					data.Rects [4 * i + j] = rect [j];
 			}
 		}
+
+        void UpdateImage () {
+            if (!_maskImageLoading)
+                StartCoroutine (LoadMaskImage ());
+        }
 
 		void Load () {
 			var path = Path.Combine (Application.streamingAssetsPath, config);
@@ -628,14 +645,29 @@ namespace nobnak.Blending {
 		}
 
 		IEnumerator LoadMaskImage () {
+            _maskImageLoading = true;
 			var path = Application.streamingAssetsPath + "/" + data.MaskImagePath;
-			if (!File.Exists (path)) {
-				Debug.LogFormat ("MaskImage not found at {0}", path);
-				yield break;
-			}
-			var www = new WWW ("file://" + path);
-			yield return www;
-			maskMat.SetTexture (SHADER_MASK_TEX, www.textureNonReadable);
+
+            if (!File.Exists (path)) {
+                Debug.LogFormat ("Mask Image not found at {0}", path);
+                Destroy (_maskImageTex);
+            } else {
+                var lastWriteTime = File.GetLastWriteTime (path);
+                if (lastWriteTime != _maskImageWriteTime) {
+                    Debug.LogFormat ("Load Mask Image at : {0}", path);
+                    _maskImageWriteTime = lastWriteTime;
+
+                    var www = new WWW ("file://" + path);
+                    yield return www;
+
+                    Destroy (_maskImageTex);
+                    _maskImageTex = www.textureNonReadable;
+                    _maskImageTex.wrapMode = TextureWrapMode.Clamp;
+                    _maskImageTex.filterMode = FilterMode.Bilinear;
+                }
+            }
+
+            _maskImageLoading = false;
 		}
 
 		[System.Serializable]
