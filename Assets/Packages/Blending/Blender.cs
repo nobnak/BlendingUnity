@@ -19,7 +19,6 @@ namespace nobnak.Blending
 				public const int WINDOW_ID = 0;
 				public const int NUM_RECTS = 4;
 
-				public const string SHADER_GAMMA = "_Gamma";
 				public const string SHADER_MASK_TEX = "_MaskTex";
 				public const string SHADER_RECTS = "_Rects";
 				public static readonly Vector2 WINDOW_SIZE = new Vector2 (500f, 300f);
@@ -40,9 +39,6 @@ namespace nobnak.Blending
 				public static readonly Color[] COLORS = new Color[] {
 						Color.white, Color.green, Color.white, Color.red, Color.black, Color.cyan, Color.white, Color.magenta, Color.white
 				};
-
-				public static readonly string[] GAMMA_SELECT = new string[]{ "sRGB", "Linear", "1/sRGB" };
-				public static readonly float[] GAMMA_VALUE = new float[]{ (float)(1 / 2.2), 1f, 2.2f };
 
 				public string config = "Blending.txt";
 				public Data data;
@@ -73,7 +69,6 @@ namespace nobnak.Blending
 				private UIInt _uiM;
 				private UIFloat[] _uiHBlendings;
 				private UIFloat[] _uiVBlendings;
-				private UIFloat _uiGamma;
 				private string _maskImagePath;
 				private UIFloat[] _uiMasks;
 				private string[] _maskSelections;
@@ -119,7 +114,6 @@ namespace nobnak.Blending
 						}
 			
 						blendMat.mainTexture = _capture.GetTarget ();
-						blendMat.SetFloat (SHADER_GAMMA, 1f / data.Gamma);
 						_blendObj.GetComponent<Renderer> ().sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
 						maskMat.mainTexture = _blend.GetTarget ();
 						for (var i = 0; i < _rects.Length; i++)
@@ -145,11 +139,6 @@ namespace nobnak.Blending
 						GUILayout.Label (" N x M");
 						_uiN.StrValue = GUILayout.TextField (_uiN.StrValue, TEXT_WIDTH);
 						_uiM.StrValue = GUILayout.TextField (_uiM.StrValue, TEXT_WIDTH);
-						GUILayout.EndHorizontal ();
-
-						GUILayout.BeginHorizontal ();
-						GUILayout.Label ("Gamma Correction");
-						_uiGamma.StrValue = GUILayout.TextField (_uiGamma.StrValue, TEXT_WIDTH);
 						GUILayout.EndHorizontal ();
 
 						GUILayout.BeginHorizontal ();
@@ -537,7 +526,6 @@ namespace nobnak.Blending
 								_uiM = new UIInt (_nRows);
 								_uiHBlendings = new UIFloat[0];
 								_uiVBlendings = new UIFloat[0];
-								_uiGamma = new UIFloat (data.Gamma);
 								_maskImagePath = data.MaskImagePath;
 								_uiMasks = new UIFloat[8];
 								LoadScreenData (SelectedScreen ());
@@ -569,7 +557,6 @@ namespace nobnak.Blending
 						for (var i = 0; i < _uiVBlendings.Length; i++)
 								data.RowOverlaps [i] = _uiVBlendings [i].Value;
 
-						data.Gamma = _uiGamma.Value;
 						data.MaskImagePath = _maskImagePath;
 
 						SaveScreenData (SelectedScreen ());
@@ -673,7 +660,6 @@ namespace nobnak.Blending
 				{
 						public float[] RowOverlaps;
 						public float[] ColOverlaps;
-						public float Gamma;
 						public string MaskImagePath;
 
 						public Mask[] Masks;
@@ -709,7 +695,6 @@ namespace nobnak.Blending
 								ColOverlaps = new float[nCols - 1];
 								RowOverlaps = new float[nRows - 1];
 
-								Gamma = 2.2f;
 								MaskImagePath = "MaskImage.png";
 
 								Masks = new Mask[nCols * nRows];

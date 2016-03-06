@@ -294,23 +294,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!1 &1635460979 stripped
-GameObject:
-  m_PrefabParentObject: {fileID: 110018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
-  m_PrefabInternal: {fileID: 1784124391}
---- !u!114 &1635460982
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1635460979}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f24cd47d1fe99ae4d81ab2576da7aad1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hideAfterSeconds: 3
-  thresholdInPixels: 3
 --- !u!1001 &1784124391
 Prefab:
   m_ObjectHideFlags: 0
@@ -349,10 +332,6 @@ Prefab:
     - target: {fileID: 410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
       propertyPath: m_RootOrder
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 11410018, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}
-      propertyPath: data.MaskImagePath
-      value: Blending_MaskImage.png
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 89cdd55c66d6db748bccc8ef1e07d190, type: 2}

@@ -9,6 +9,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 410018}
   - 114: {fileID: 11410018}
+  - 114: {fileID: 11458800}
   m_Layer: 0
   m_Name: Blending
   m_TagString: Untagged
@@ -23,7 +24,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 110018}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 10, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -43,7 +44,8 @@ MonoBehaviour:
   data:
     RowOverlaps: []
     ColOverlaps: []
-    Gamma: 2.20000005
+    Gamma: 2.2
+    MaskImagePath: MaskImage.png
     Masks:
     - bl: {x: 0, y: 0}
       br: {x: 1, y: 0}
@@ -74,6 +76,19 @@ MonoBehaviour:
   occlusionMat: {fileID: 2100000, guid: 9830882bbd973bc418652960b3df21b9, type: 2}
   vcolorMat: {fileID: 2100000, guid: dea99df42620f2e44bc6d3e961238df0, type: 2}
   debugKey: 101
+--- !u!114 &11458800
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 110018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f24cd47d1fe99ae4d81ab2576da7aad1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hideAfterSeconds: 3
+  thresholdInPixels: 3
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
@@ -85,4 +100,3 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 110018}
   m_IsPrefabParent: 1
-  m_IsExploded: 1
