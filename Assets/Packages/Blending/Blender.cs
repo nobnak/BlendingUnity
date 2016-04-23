@@ -14,7 +14,6 @@ namespace nobnak.Blending {
 		public const int DEPTH_BLEND = 91;
 		public const int DEPTH_MASK = 92;
 		public const int DEPTH_OCCLUSION = 93;
-		public const int WINDOW_ID = 0;
 		public const int NUM_RECTS = 4;
 
 		public const string SHADER_MASK_TEX = "_MaskTex";
@@ -128,7 +127,7 @@ namespace nobnak.Blending {
 			if (_debugMode == 0)
 				return;
 
-			_guiWindowPos = GUILayout.Window (WINDOW_ID, _guiWindowPos, DrawWindow, "Blending & Masking");
+            _guiWindowPos = GUILayout.Window (GetInstanceID(), _guiWindowPos, DrawWindow, "Blending & Masking");
 		}
 
 		void DrawWindow (int id) {
