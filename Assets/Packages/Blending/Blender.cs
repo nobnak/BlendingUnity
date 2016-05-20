@@ -7,6 +7,8 @@ using System.Xml.Serialization;
 namespace nobnak.Blending {
 
 	public class Blender : MonoBehaviour {
+        public enum ConfigFolderEnum { StreamingAssets = 0, MyDocuments }
+
 		public const int LAYER_BLEND = 29;
 		public const int LAYER_MASK = 30;
 		public const int LAYER_OCCLUSION = 31;
@@ -37,6 +39,7 @@ namespace nobnak.Blending {
 			Color.white, Color.green, Color.white, Color.red, Color.black, Color.cyan, Color.white, Color.magenta, Color.white
 		};
 
+        public ConfigFolderEnum configFolder;
 		public string config = "Blending.txt";
 		public Data data;
 		public Material blendMat;
@@ -123,6 +126,7 @@ namespace nobnak.Blending {
 			occlusionMat.mainTexture = _mask.GetTarget ();
 		}
 
+        #region GUI
 		void OnGUI () {
 			if (_debugMode == 0)
 				return;
@@ -211,7 +215,9 @@ namespace nobnak.Blending {
 
 			UnityEngine.GUI.DragWindow ();
 		}
+        #endregion
 
+        #region Update
 		void CheckInit () {
 			if (_capture == null) {
 				var captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
@@ -579,9 +585,11 @@ namespace nobnak.Blending {
             if (!_maskImageLoading)
                 StartCoroutine (LoadMaskImage ());
         }
+        #endregion
 
+        #region Save/Load
 		void Load () {
-			var path = Path.Combine (Application.streamingAssetsPath, config);
+            var path = ConfigPath ();
 			if (File.Exists (path)) {
 				var serializer = Data.GetXmlSerializer ();
 				using (var reader = new StreamReader (path)) {
@@ -590,14 +598,24 @@ namespace nobnak.Blending {
 			}
 			data.CheckInit ();
 		}
-
 		void Save () {
-			using (var writer = new StreamWriter (Path.Combine (Application.streamingAssetsPath, config))) {
+            using (var writer = new StreamWriter (ConfigPath())) {
 				var serializer = Data.GetXmlSerializer ();
 				serializer.Serialize (writer, data);
 			}
 		}
+        string ConfigPath() {
+            var dir = Application.streamingAssetsPath;
+            switch (configFolder) {
+            case ConfigFolderEnum.MyDocuments:
+                dir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
+                break;
+            }
+            return Path.Combine (dir, config);
+        }
+        #endregion
 
+        #region Screen
 		int SelectedScreen () {
 			var selX = _selectedMask % _nCols;
 			var selY = (_nRows - 1) - _selectedMask / _nCols;
@@ -642,6 +660,7 @@ namespace nobnak.Blending {
 			_guiOcclusion.Invalidate ();
 			_guiOcclusion.InitOnce ("Occlusion", occlusion.inside);
 		}
+        #endregion
 
 		IEnumerator LoadMaskImage () {
             _maskImageLoading = true;
@@ -669,6 +688,7 @@ namespace nobnak.Blending {
             _maskImageLoading = false;
 		}
 
+        #region Classes
 		[System.Serializable]
 		public class Data {
 			public float[] RowOverlaps;
@@ -761,5 +781,6 @@ namespace nobnak.Blending {
 				}
 			}
 		}
+        #endregion
 	}
 }
