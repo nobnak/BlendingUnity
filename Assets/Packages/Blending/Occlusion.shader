@@ -32,6 +32,7 @@
 			
 			float4 frag(Input IN) : COLOR {
 				float4 c = tex2D(_MainTex, IN.uv);
+
 				float2 w = smoothstep(0.0, 1.0, IN.uv2);
 				c *= pow(w.x * w.y, _Gamma);
 				return c;

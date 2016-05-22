@@ -1,7 +1,6 @@
 ﻿Shader "Custom/Mask" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "black" {}
-		_MaskTex ("Mask", 2D) = "white" {}
 	}
 	SubShader {
 		Tags { "RenderType"="Overlay" }
@@ -19,7 +18,6 @@
 
 			sampler2D _MainTex;
 			float4 _MainTex_TexelSize;
-			sampler2D _MaskTex;
 			float4 _Rects[NUM_RECTS];
 
 			struct Input {
@@ -40,8 +38,7 @@
 						discard;
 				}
 				float4 c = tex2D(_MainTex, IN.uv);
-				float4 mask = tex2D(_MaskTex, IN.uv);
-				return c * mask;
+                return c;
 			}
 			ENDCG
 		}

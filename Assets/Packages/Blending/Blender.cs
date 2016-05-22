@@ -118,12 +118,14 @@ namespace nobnak.Blending {
 			}
 
 			blendMat.mainTexture = _capture.GetTarget ();
+            blendMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
 			_blendObj.GetComponent<Renderer> ().sharedMaterial = (_debugMode == 1 ? vcolorMat : blendMat);
 			maskMat.mainTexture = _blend.GetTarget ();
-            maskMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
+            //maskMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
 			for (var i = 0; i < _rects.Length; i++)
 				maskMat.SetVector (_rectNames [i], _rects [i]);
 			occlusionMat.mainTexture = _mask.GetTarget ();
+            //occlusionMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
 		}
 
         #region GUI
@@ -589,7 +591,7 @@ namespace nobnak.Blending {
 
         #region Save/Load
 		void Load () {
-            var path = ConfigPath ();
+            var path = MakePath (config);
 			if (File.Exists (path)) {
 				var serializer = Data.GetXmlSerializer ();
 				using (var reader = new StreamReader (path)) {
@@ -599,19 +601,19 @@ namespace nobnak.Blending {
 			data.CheckInit ();
 		}
 		void Save () {
-            using (var writer = new StreamWriter (ConfigPath())) {
+            using (var writer = new StreamWriter (MakePath(config))) {
 				var serializer = Data.GetXmlSerializer ();
 				serializer.Serialize (writer, data);
 			}
 		}
-        string ConfigPath() {
+        string MakePath(string file) {
             var dir = Application.streamingAssetsPath;
             switch (configFolder) {
             case ConfigFolderEnum.MyDocuments:
                 dir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
                 break;
             }
-            return Path.Combine (dir, config);
+            return Path.Combine (dir, file);
         }
         #endregion
 
@@ -664,7 +666,7 @@ namespace nobnak.Blending {
 
 		IEnumerator LoadMaskImage () {
             _maskImageLoading = true;
-			var path = Application.streamingAssetsPath + "/" + data.MaskImagePath;
+            var path = MakePath(data.MaskImagePath);
 
             if (!File.Exists (path)) {
                 Debug.LogFormat ("Mask Image not found at {0}", path);
