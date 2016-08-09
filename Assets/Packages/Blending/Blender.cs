@@ -84,14 +84,11 @@ namespace nobnak.Blending {
         System.DateTime _maskImageWriteTime = System.DateTime.MinValue;
 
 		void OnDisable () {
-            if (_capture != null)
-			    Destroy (_capture.gameObject);
-            if (_blend != null)
-			    Destroy (_blend.gameObject);
+			Destroy (_capture.gameObject);
+			Destroy (_blend.gameObject);
 			Destroy (_blendObj);
 			Destroy (_blendMesh);
-            if (_mask != null)
-			    Destroy (_mask.gameObject);
+			Destroy (_mask.gameObject);
 			Destroy (_maskObj);
 			Destroy (_maskMesh);
 			Destroy (_occlusionCam);
