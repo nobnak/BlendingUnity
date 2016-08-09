@@ -1,7 +1,6 @@
 ﻿Shader "Custom/Blend" {
 	Properties {
 		_MainTex ("Main Texture", 2D) = "black" {}
-        _MaskTex ("Mask", 2D) = "black" {}
 		_Gamma ("Gamma", Float) = 1
 	}
 	SubShader {
@@ -15,8 +14,7 @@
 			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
-            sampler2D _MaskTex;
-            float _Gamma;
+			float _Gamma;
 
 			struct Input {
 				float4 vertex : POSITION;
@@ -34,9 +32,6 @@
 			
 			float4 frag(Input IN) : COLOR {
 				float4 c = tex2D(_MainTex, IN.uv);
-                float4 mask = tex2D(_MaskTex, IN.uv);
-                c = lerp(c, mask, mask.a);
-
 				float2 w = smoothstep(0.0, 1.0, IN.uv2);
 				c *= pow(w.x * w.y, _Gamma);
 				return c;
