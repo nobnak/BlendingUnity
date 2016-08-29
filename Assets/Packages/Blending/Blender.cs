@@ -14,18 +14,24 @@ namespace nobnak.Blending
     {
         public const int DEPTH_CAPTURE = 90;
 
+        GameObject _captureCam;
         Capture _capture;
         Capture _blend;
         Capture _mask;
+
+        protected override void Start () {
+            _captureCam = new GameObject("Capture Camera", typeof(Camera), typeof(Capture));
+            _captureCam.transform.SetParent(transform, false);
+            _captureCam.GetComponent<Camera>().depth = DEPTH_CAPTURE;
+
+            base.Start ();
+        }
 
         protected override Texture GetCaptureTex()
         {
             if (_capture == null)
             {
-                var captureCam = new GameObject("Capture Camera", typeof(Camera), typeof(Capture));
-                captureCam.transform.SetParent(transform, false);
-                captureCam.GetComponent<Camera>().depth = DEPTH_CAPTURE;
-                _capture = captureCam.GetComponent<Capture>();
+                _capture = _captureCam.GetComponent<Capture>();
             }
 
             return _capture.GetTarget();
@@ -837,7 +843,7 @@ namespace nobnak.Blending
         IEnumerator LoadMaskImage()
         {
             _maskImageLoading = true;
-            var path = Application.streamingAssetsPath + "/" + data.MaskImagePath;
+            var path = MakePath(data.MaskImagePath);
 
             if (!File.Exists(path))
             {
