@@ -92,6 +92,8 @@ namespace nobnak.Blending
             Color.white, Color.green, Color.white, Color.red, Color.black, Color.cyan, Color.white, Color.magenta, Color.white
         };
 
+        public enum ConfigFolderEnum { StreamingAssets = 0, MyDocuments }
+        public ConfigFolderEnum configFolder;
         public string configFileName = "Blending.txt";
         int windowId { get { return gameObject.GetInstanceID(); } }
 
@@ -751,9 +753,10 @@ namespace nobnak.Blending
                 StartCoroutine(LoadMaskImage());
         }
 
+        #region Save/Load
         void Load()
         {
-            var path = Path.Combine(Application.streamingAssetsPath, configFileName);
+            var path = MakePath(configFileName);
             if (File.Exists(path))
             {
                 var serializer = Data.GetXmlSerializer();
@@ -764,15 +767,24 @@ namespace nobnak.Blending
             }
             data.CheckInit();
         }
-
         void Save()
         {
-            using (var writer = new StreamWriter(Path.Combine(Application.streamingAssetsPath, configFileName)))
+            using (var writer = new StreamWriter(MakePath(configFileName)))
             {
                 var serializer = Data.GetXmlSerializer();
                 serializer.Serialize(writer, data);
             }
         }
+        string MakePath(string file) {
+            var dir = Application.streamingAssetsPath;
+            switch (configFolder) {
+            case ConfigFolderEnum.MyDocuments:
+                dir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
+                break;
+            }
+            return Path.Combine (dir, file);
+        }
+        #endregion
 
         int SelectedScreen()
         {
