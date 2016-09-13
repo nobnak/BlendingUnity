@@ -10,7 +10,7 @@ using UnityEngine.Assertions;
 namespace nobnak.Blending
 {
 
-    public class Blender : BlenderBase
+        public class Blender : BlenderBase
     {
         public const int DEPTH_CAPTURE = 90;
 
@@ -25,34 +25,30 @@ namespace nobnak.Blending
             _captureCam.GetComponent<Camera>().depth = DEPTH_CAPTURE;
 
             base.Start ();
+
+            _capture = _captureCam.GetComponent<Capture> ();
+            _blend = _blendCamera.gameObject.AddComponent<Capture> ();
+            _mask = _maskCamera.gameObject.AddComponent<Capture> ();
+
+            _blendCamera.clearFlags = CameraClearFlags.SolidColor;
+            _maskCamera.clearFlags = CameraClearFlags.SolidColor;
+            _occlusionCamera.clearFlags = CameraClearFlags.SolidColor;
+
         }
 
         protected override Texture GetCaptureTex()
         {
-            if (_capture == null)
-            {
-                _capture = _captureCam.GetComponent<Capture>();
-            }
-
             return _capture.GetTarget();
         }
 
         protected override Texture GetBlendedTex()
         {
-            if (_blend == null)
-            {
-                _blend = _blendCamera.gameObject.AddComponent<Capture>();
-            }
             return _blend.GetTarget();
         }
 
 
         protected override Texture GetMaskedTex()
         {
-            if (_mask == null)
-            {
-                _mask = _maskCamera.gameObject.AddComponent<Capture>();
-            }
             return _mask.GetTarget();
         }
 
@@ -167,11 +163,8 @@ namespace nobnak.Blending
         }
 
         #region abstract
-
         protected abstract Texture GetCaptureTex();
-
         protected abstract Texture GetBlendedTex();
-
         protected abstract Texture GetMaskedTex();
         #endregion
 
@@ -239,8 +232,7 @@ namespace nobnak.Blending
             _blendObjRenderer.sharedMaterial = (debugMode == DebugMode.ViewColor ? vcolorMat : blendMat);
             maskMat.mainTexture = GetBlendedTex();
             maskMat.SetTexture(SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
-            for (var i = 0; i < _rects.Length; i++)
-                maskMat.SetVector(_rectNames[i], _rects[i]);
+            maskMat.SetVectorArray(SHADER_RECTS, _rects);
             occlusionMat.mainTexture = GetMaskedTex();
         }
 
@@ -352,7 +344,7 @@ namespace nobnak.Blending
 
         void CheckInit()
         {
-            if (_blendObjRenderer == null)
+            if (_blendCamera == null)
             {
                 var blendCamObj = new GameObject("Blend Camera");
                 blendCamObj.transform.parent = transform;
