@@ -228,7 +228,12 @@ namespace nobnak.Blending {
             _blendObjRenderer.sharedMaterial = (debugMode == DebugMode.ViewColor ? vcolorMat : blendMat);
             maskMat.mainTexture = GetBlendedTex ();
             maskMat.SetTexture (SHADER_MASK_TEX, data.MaskImageToggle ? _maskImageTex : null);
+            #if UNITY_5_4_OR_NEWER
             maskMat.SetVectorArray (SHADER_RECTS, _rects);
+            #else
+            for (var i = 0; i < _rects.Length; i++)
+                maskMat.SetVector(_rectNames[i], _rects[i]);
+            #endif
             occlusionMat.mainTexture = GetMaskedTex ();
         }
 
