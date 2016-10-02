@@ -708,7 +708,7 @@ namespace nobnak.Blending {
         }
 
         void UpdateImage () {
-            if (!_maskImageLoading && !string.IsNullOrEmpty (_maskImagePath))
+            if (!_maskImageLoading && !string.IsNullOrEmpty (data.MaskImagePath))
                 StartCoroutine (LoadMaskImage ());
         }
 
