@@ -12,7 +12,7 @@ namespace nobnak.Blending {
 			_rtex = null;
 		}
 		void Awake() {
-			//GetComponent<Camera>().cullingMask = 0;
+			GetComponent<Camera>().cullingMask = 0;
 			GetComponent<Camera>().clearFlags = CameraClearFlags.Nothing;
 		}
 		void OnRenderImage(RenderTexture src, RenderTexture dst) {

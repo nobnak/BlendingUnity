@@ -25,8 +25,8 @@ namespace nobnak.Blending {
             base.Start ();
 
             _capture = _captureCam.GetComponent<Capture> ();
-            _blend = _blendCamera.gameObject.AddComponent<Capture> ();
-            _mask = _maskCamera.gameObject.AddComponent<Capture> ();
+            _blend = _blendCamera.gameObject.GetComponent<Capture> ();
+            _mask = _maskCamera.gameObject.GetComponent<Capture> ();
 
             _blendCamera.clearFlags = CameraClearFlags.SolidColor;
             _maskCamera.clearFlags = CameraClearFlags.SolidColor;
@@ -341,12 +341,12 @@ namespace nobnak.Blending {
 
         void CheckInit () {
             if (_blendCamera == null) {
-                var blendCamObj = new GameObject ("Blend Camera");
+                var blendCamObj = new GameObject ("Blend Camera", typeof(Camera), typeof(Capture));
                 blendCamObj.transform.parent = transform;
                 blendCamObj.transform.localPosition = new Vector3 (0f, 0f, 0f);
                 blendCamObj.transform.localRotation = Quaternion.identity;
 
-                _blendCamera = blendCamObj.AddComponent<Camera> ();
+                _blendCamera = blendCamObj.GetComponent<Camera> ();
                 _SetOrthoCameraParams (_blendCamera, DEPTH_BLEND);
             }
 
@@ -364,7 +364,7 @@ namespace nobnak.Blending {
             }
 
             if (_maskCamera == null) {
-                var maskCamObj = new GameObject ("Mask Camera", typeof(Camera));
+                var maskCamObj = new GameObject ("Mask Camera", typeof(Camera), typeof(Capture));
                 maskCamObj.transform.parent = transform;
                 maskCamObj.transform.localPosition = new Vector3 (2f, 0f, 0f);
                 maskCamObj.transform.localRotation = Quaternion.identity;
