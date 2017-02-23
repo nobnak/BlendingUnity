@@ -5,7 +5,13 @@ namespace nobnak.Blending {
 
 	[RequireComponent(typeof(Camera))]
 	public class Capture : MonoBehaviour {
-		private RenderTexture _rtex;
+
+        private int? _width;
+        private int? _height;
+        public int width { get { return _width ?? Screen.width; } set { _width = value; } }
+        public int height { get { return _height ?? Screen.height; } set { _height = value; } }
+
+        private RenderTexture _rtex;
 
 		void OnDisable() {
 			Destroy(_rtex);
@@ -23,9 +29,9 @@ namespace nobnak.Blending {
 		}
 
 		public RenderTexture GetTarget() {
-			if (_rtex == null || _rtex.width != Screen.width || _rtex.height != Screen.height) {
+			if (_rtex == null || _rtex.width != width || _rtex.height != height) {
 				Destroy (_rtex);
-				_rtex = new RenderTexture (Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+				_rtex = new RenderTexture (width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 				_rtex.wrapMode = TextureWrapMode.Clamp;
 			}
 			return _rtex;

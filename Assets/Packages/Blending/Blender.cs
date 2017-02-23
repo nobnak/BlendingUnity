@@ -14,8 +14,6 @@ namespace nobnak.Blending {
 
         GameObject _captureCam;
         Capture _capture;
-        Capture _blend;
-        Capture _mask;
 
         protected override void Start () {
             _captureCam = new GameObject ("Capture Camera", typeof(Camera), typeof(Capture));
@@ -25,8 +23,6 @@ namespace nobnak.Blending {
             base.Start ();
 
             _capture = _captureCam.GetComponent<Capture> ();
-            _blend = _blendCamera.gameObject.GetComponent<Capture> ();
-            _mask = _maskCamera.gameObject.GetComponent<Capture> ();
 
             _blendCamera.clearFlags = CameraClearFlags.SolidColor;
             _maskCamera.clearFlags = CameraClearFlags.SolidColor;
@@ -36,15 +32,6 @@ namespace nobnak.Blending {
 
         protected override Texture GetCaptureTex () {
             return _capture.GetTarget ();
-        }
-
-        protected override Texture GetBlendedTex () {
-            return _blend.GetTarget ();
-        }
-
-
-        protected override Texture GetMaskedTex () {
-            return _mask.GetTarget ();
         }
 
         protected override void OnDisable () {
@@ -110,9 +97,11 @@ namespace nobnak.Blending {
         protected Camera _blendCamera;
         Renderer _blendObjRenderer;
         Mesh _blendMesh;
+        protected Capture _blend;
         protected Camera _maskCamera;
         GameObject _maskObj;
         Mesh _maskMesh;
+        protected Capture _mask;
         protected Camera _occlusionCamera;
         GameObject _occlusionObj;
         Mesh _occlusionMesh;
@@ -161,15 +150,19 @@ namespace nobnak.Blending {
             }
         }
 
+
         #region abstract
 
         protected abstract Texture GetCaptureTex ();
 
-        protected abstract Texture GetBlendedTex ();
-
-        protected abstract Texture GetMaskedTex ();
-
         #endregion
+
+
+        protected virtual Texture GetBlendedTex() { return _blend.GetTarget(); }
+
+        protected virtual Texture GetMaskedTex() { return _mask.GetTarget(); }
+
+
 
 
         protected virtual void OnDisable () {
@@ -348,6 +341,8 @@ namespace nobnak.Blending {
 
                 _blendCamera = blendCamObj.GetComponent<Camera> ();
                 _SetOrthoCameraParams (_blendCamera, DEPTH_BLEND);
+
+                _blend = blendCamObj.GetComponent<Capture>();
             }
 
             if (_blendObjRenderer == null) {
@@ -371,6 +366,8 @@ namespace nobnak.Blending {
 
                 _maskCamera = maskCamObj.GetComponent<Camera> ();
                 _SetOrthoCameraParams (_maskCamera, DEPTH_MASK);
+
+                _mask = maskCamObj.GetComponent<Capture>();
             }
 
             if (_maskObj == null) {
