@@ -852,10 +852,10 @@ namespace nobnak.Blending {
                 var oldRects = Rects;
                 var oldOcclusions = Occlusions;
 
-                ColOverlaps = new float[nCols - 1];
-                RowOverlaps = new float[nRows - 1];
+                ColOverlaps = Enumerable.Repeat(0.1f, nCols-1).ToArray();
+                RowOverlaps = Enumerable.Repeat(0.1f, nRows-1).ToArray();
 
-                MaskImagePath = "MaskImage.png";
+                MaskImagePath = "";
                 MaskImageToggle = false;
 
                 Masks = new Mask[nCols * nRows];
