@@ -76,8 +76,8 @@ namespace nobnak.Blending {
 
         public enum ConfigFolderEnum {
             StreamingAssets = 0,
-            MyDocuments
-
+            MyDocuments,
+            PersistentDataPath
         }
 
         public ConfigFolderEnum configFolder;
@@ -729,14 +729,19 @@ namespace nobnak.Blending {
             }
         }
 
-        string MakePath (string file) {
+        string MakePath(string file)
+        {
             var dir = Application.streamingAssetsPath;
-            switch (configFolder) {
-            case ConfigFolderEnum.MyDocuments:
-                dir = System.Environment.GetFolderPath (System.Environment.SpecialFolder.MyDocuments);
-                break;
+            switch (configFolder)
+            {
+                case ConfigFolderEnum.MyDocuments:
+                    dir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                    break;
+                case ConfigFolderEnum.PersistentDataPath:
+                    dir = Application.persistentDataPath;
+                    break;
             }
-            return Path.Combine (dir, file);
+            return Path.Combine(dir, file);
         }
 
         #endregion
