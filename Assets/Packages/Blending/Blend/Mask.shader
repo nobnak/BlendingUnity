@@ -4,7 +4,7 @@
 		_MaskTex ("Mask", 2D) = "white" {}
 	}
 	SubShader {
-		Tags { "RenderType"="Overlay" }
+		Tags { "RenderType"="Overlay" "PreviewType" = "Plane" }
 		ZTest Always ZWrite Off Cull Off Fog { Mode Off }
 		ColorMask RGB
 		

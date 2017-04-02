@@ -4,7 +4,7 @@
 		_Gamma ("Gamma", Float) = 1
 	}
 	SubShader {
-		Tags { "Queue" = "Overlay" }
+		Tags { "Queue" = "Overlay" "PreviewType" = "Plane" }
 		ZTest Always ZWrite Off Cull Off Fog { Mode Off }
 		
 		Pass {
