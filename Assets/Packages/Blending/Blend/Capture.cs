@@ -36,5 +36,10 @@ namespace nobnak.Blending {
 			}
 			return _rtex;
 		}
+        public void UseScreenResolution() {
+            _width = null;
+            _height = null;
+        }
+
 	}
 }
