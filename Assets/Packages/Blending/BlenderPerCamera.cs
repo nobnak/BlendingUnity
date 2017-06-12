@@ -33,7 +33,7 @@ namespace nobnak.Blending
         // 最終出力
         public RenderTexture GetTexture()
         {
-            if (_occlusionCamera != null){
+            if (_occlusionCamera == null){
                 return null;
             }
             return _occlusionCamera.targetTexture;
