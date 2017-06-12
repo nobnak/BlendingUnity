@@ -1,4 +1,6 @@
-﻿Shader "Custom/Mask" {
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/Mask" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "black" {}
 		_MaskTex ("Mask", 2D) = "white" {}
@@ -29,7 +31,7 @@
 
 			Input vert(Input IN) {
 				Input OUT;
-				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
 				OUT.uv = IN.uv;
 				return OUT;
 			}
