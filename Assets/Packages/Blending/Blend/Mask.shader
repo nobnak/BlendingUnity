@@ -8,7 +8,7 @@ Shader "Custom/Mask" {
 	SubShader {
 		Tags { "RenderType"="Overlay" "PreviewType" = "Plane" }
 		ZTest Always ZWrite Off Cull Off Fog { Mode Off }
-		ColorMask RGB
+		ColorMask RGBA
 		
 		Pass {
 			CGPROGRAM
