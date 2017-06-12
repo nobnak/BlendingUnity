@@ -15,6 +15,8 @@ namespace nobnak.Blending
 
             _camera = GetComponent<Camera>();
             var tex = _camera.targetTexture;
+            _blendCamera.targetTexture = new RenderTexture(tex.width, tex.height, tex.depth);
+            _maskCamera.targetTexture = new RenderTexture(tex.width, tex.height, tex.depth);
             _occlusionCamera.targetTexture = new RenderTexture(tex.width, tex.height, tex.depth);
         }
 
@@ -31,6 +33,9 @@ namespace nobnak.Blending
         // 最終出力
         public RenderTexture GetTexture()
         {
+            if (_occlusionCamera == null){
+                return null;
+            }
             return _occlusionCamera.targetTexture;
         }
     }
