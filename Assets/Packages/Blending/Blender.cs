@@ -34,11 +34,19 @@ namespace nobnak.Blending {
             return _capture.GetTarget ();
         }
 
+        protected override void SetObjectsActive(bool active)
+        {
+            base.SetObjectsActive(active);
+            if (_captureCam != null ) _captureCam.SetActive(active);
+        }
+
+        /*
         protected override void OnDisable () {
             Destroy (_blend.gameObject);
 
             base.OnDisable ();
         }
+        */
     }
 
 
@@ -163,18 +171,24 @@ namespace nobnak.Blending {
         protected virtual Texture GetMaskedTex() { return _mask.GetTarget(); }
 
 
+        protected virtual void OnEnable()
+        {
+            SetObjectsActive(true);
+        }
 
+        protected virtual void OnDisable()
+        {
+            SetObjectsActive(false);
+        }
 
-        protected virtual void OnDisable () {
-            Destroy (_blendCamera.gameObject);
-            Destroy (_blendObjRenderer.gameObject);
-            Destroy (_blendMesh);
-            Destroy (_maskCamera.gameObject);
-            Destroy (_maskObj);
-            Destroy (_maskMesh);
-            Destroy (_occlusionCamera.gameObject);
-            Destroy (_occlusionObj);
-            Destroy (_maskImageTex);
+        protected virtual void SetObjectsActive(bool active)
+        {
+            if (_blendCamera != null) _blendCamera.gameObject.SetActive(active);
+            if (_blendObjRenderer != null) _blendObjRenderer.gameObject.SetActive(active);
+            if (_maskCamera != null) _maskCamera.gameObject.SetActive(active);
+            if (_maskObj != null) _maskObj.SetActive(active);
+            if (_occlusionCamera != null) _occlusionCamera.gameObject.SetActive(active);
+            if (_occlusionObj != null) _occlusionObj.SetActive(active);
         }
 
         protected virtual void Awake () {
