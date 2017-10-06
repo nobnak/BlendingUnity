@@ -132,6 +132,7 @@ namespace nobnak.Blending {
         GUIVector[] _guiRects;
         GUIVector _guiOcclusion;
         UIFloat _uiOcclutionGamma;
+		UIFloat _uiBlendGamma;
 
         bool _maskImageToggle;
         bool _maskImageLoading = false;
@@ -285,8 +286,15 @@ namespace nobnak.Blending {
             for (var i = 0; i < _guiRects.Length; i++)
                 _rects [i] = _guiRects [i].Draw ();
 
-            GUILayout.Label ("---- Occlusion Gamma ----");
+            GUILayout.Label ("---- Gamma ----");
+			GUILayout.BeginHorizontal ();
+			GUILayout.Label ("Blend (For Projectors)");
+            _uiBlendGamma.StrValue = GUILayout.TextField (_uiBlendGamma.StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal ();
+			GUILayout.BeginHorizontal ();
+			GUILayout.Label ("Occlusion");
             _uiOcclutionGamma.StrValue = GUILayout.TextField (_uiOcclutionGamma.StrValue, TEXT_WIDTH);
+			GUILayout.EndHorizontal ();
 
             GUILayout.EndVertical ();
 
@@ -302,23 +310,34 @@ namespace nobnak.Blending {
                 LoadScreenData (selScreen);
             }
 
+			GUILayout.BeginHorizontal ();
+            GUILayout.Label ("      ");
+			GUILayout.Label ("      ");
+			GUILayout.Label ("      ");
+            GUILayout.Label ("x     ");
+			GUILayout.Label ("y     ");
+			GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Bottom Left");
+            GUILayout.Label ("Left  ");
+			GUILayout.Label ("Bottom");
             _uiMasks [0].StrValue = GUILayout.TextField (_uiMasks [0].StrValue, TEXT_WIDTH);
             _uiMasks [1].StrValue = GUILayout.TextField (_uiMasks [1].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Bottom Right");
+            GUILayout.Label ("Right ");
+			GUILayout.Label ("Bottom");
             _uiMasks [2].StrValue = GUILayout.TextField (_uiMasks [2].StrValue, TEXT_WIDTH);
             _uiMasks [3].StrValue = GUILayout.TextField (_uiMasks [3].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Top Left");
+            GUILayout.Label ("Left  ");
+			GUILayout.Label ("Top   ");
             _uiMasks [4].StrValue = GUILayout.TextField (_uiMasks [4].StrValue, TEXT_WIDTH);
             _uiMasks [5].StrValue = GUILayout.TextField (_uiMasks [5].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Top Right");
+            GUILayout.Label ("Right ");
+			GUILayout.Label ("Top   ");
             _uiMasks [6].StrValue = GUILayout.TextField (_uiMasks [6].StrValue, TEXT_WIDTH);
             _uiMasks [7].StrValue = GUILayout.TextField (_uiMasks [7].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
@@ -454,6 +473,7 @@ namespace nobnak.Blending {
         }
 
         void UpdateOcclusionMaterial () {
+			blendMat.SetFloat("_Gamma", data.BlendGamma);
             occlusionMat.SetFloat ("_Gamma", data.OcclusionGamma);
         }
 
@@ -665,6 +685,7 @@ namespace nobnak.Blending {
                 _maskImageToggle = data.MaskImageToggle;
                 _maskImagePath = data.MaskImagePath;
                 _uiOcclutionGamma = new UIFloat (data.OcclusionGamma);
+				_uiBlendGamma = new UIFloat (data.BlendGamma);
                 _uiMasks = new UIFloat[8];
                 LoadScreenData (SelectedScreen ());
                 _guiRects = new GUIVector[_rects.Length];
@@ -699,6 +720,7 @@ namespace nobnak.Blending {
             data.MaskImagePath = _maskImagePath;
 
             data.OcclusionGamma = _uiOcclutionGamma.Value;
+			data.BlendGamma		= _uiBlendGamma.Value;
 
             SaveScreenData (SelectedScreen ());
 
@@ -842,6 +864,7 @@ namespace nobnak.Blending {
             public float[] Rects;
             public Occlusion[] Occlusions;
             public float OcclusionGamma;
+			public float BlendGamma;
 
             public Data () {
                 Reset (1, 1);
@@ -894,6 +917,7 @@ namespace nobnak.Blending {
                     System.Array.Copy (oldOcclusions, Occlusions, Mathf.Min (oldOcclusions.Length, Occlusions.Length));
 
                 OcclusionGamma = 0.454f;
+				BlendGamma = 0.454f; // use this gamma value to be the exact inverse of the gamma curve that is built into a physical projector.
             }
 
             public static XmlSerializer GetXmlSerializer () {
