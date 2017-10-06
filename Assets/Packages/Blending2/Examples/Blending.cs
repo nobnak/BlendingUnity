@@ -16,7 +16,8 @@ namespace Blending2 {
         }
         void OnRenderImage(RenderTexture src, RenderTexture dst) {
             using (new ScopedRenderTexture (dst)) {
-                
+                mat.SetPass(0);
+                Graphics.DrawProcedural(MeshTopology.Triangles, 4, 1);
             }
         }
         void OnDisable() {

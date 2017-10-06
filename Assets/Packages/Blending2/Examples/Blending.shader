@@ -1,11 +1,10 @@
-﻿Shader "Unlit/TestMatrixOnRenderImage" {
-	Properties {
+﻿Shader "Hidden/Blending" {
+	Properties  {
 		_MainTex ("Texture", 2D) = "white" {}
-        _Color ("Color", Color) = (1,1,1,1)
 	}
 	SubShader {
-		Tags { "RenderType"="Opaque" }
-        Cull Off ZWrite Off ZTest Always
+		// No culling or depth
+		Cull Off ZWrite Off ZTest Always
 
 		Pass {
 			CGPROGRAM
@@ -17,6 +16,8 @@
 			struct appdata {
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
+				uint vid : SV_VertexID;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct v2f {
@@ -24,21 +25,19 @@
 				float4 vertex : SV_POSITION;
 			};
 
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
-            float4 _Color;
-            float4x4 _Matrix;
-			
 			v2f vert (appdata v) {
 				v2f o;
-
-				o.vertex = mul(_Matrix, v.vertex);
+				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = v.uv;
 				return o;
 			}
 			
+			sampler2D _MainTex;
+
 			fixed4 frag (v2f i) : SV_Target {
-				float4 col = float4(i.uv, 0, 1);
+				fixed4 col = tex2D(_MainTex, i.uv);
+				// just invert the colors
+				col = 1 - col;
 				return col;
 			}
 			ENDCG
