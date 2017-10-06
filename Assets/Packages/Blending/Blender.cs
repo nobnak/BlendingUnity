@@ -302,23 +302,34 @@ namespace nobnak.Blending {
                 LoadScreenData (selScreen);
             }
 
+			GUILayout.BeginHorizontal ();
+            GUILayout.Label ("      ");
+			GUILayout.Label ("      ");
+			GUILayout.Label ("      ");
+            GUILayout.Label ("x     ");
+			GUILayout.Label ("y     ");
+			GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Bottom Left");
+            GUILayout.Label ("Left  ");
+			GUILayout.Label ("Bottom");
             _uiMasks [0].StrValue = GUILayout.TextField (_uiMasks [0].StrValue, TEXT_WIDTH);
             _uiMasks [1].StrValue = GUILayout.TextField (_uiMasks [1].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Bottom Right");
+            GUILayout.Label ("Right ");
+			GUILayout.Label ("Bottom");
             _uiMasks [2].StrValue = GUILayout.TextField (_uiMasks [2].StrValue, TEXT_WIDTH);
             _uiMasks [3].StrValue = GUILayout.TextField (_uiMasks [3].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Top Left");
+            GUILayout.Label ("Left  ");
+			GUILayout.Label ("Top   ");
             _uiMasks [4].StrValue = GUILayout.TextField (_uiMasks [4].StrValue, TEXT_WIDTH);
             _uiMasks [5].StrValue = GUILayout.TextField (_uiMasks [5].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
             GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Top Right");
+            GUILayout.Label ("Right ");
+			GUILayout.Label ("Top   ");
             _uiMasks [6].StrValue = GUILayout.TextField (_uiMasks [6].StrValue, TEXT_WIDTH);
             _uiMasks [7].StrValue = GUILayout.TextField (_uiMasks [7].StrValue, TEXT_WIDTH);
             GUILayout.EndHorizontal ();
