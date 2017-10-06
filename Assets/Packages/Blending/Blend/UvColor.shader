@@ -1,4 +1,6 @@
-﻿Shader "Custom/UvColor" {
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/UvColor" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
 	}
@@ -20,7 +22,7 @@
 			
 			Input vert(Input IN) {
 				Input OUT;
-				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
 				OUT.color = IN.color;
 				return OUT;
 			}

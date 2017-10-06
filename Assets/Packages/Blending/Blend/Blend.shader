@@ -1,4 +1,6 @@
-﻿Shader "Custom/Blend" {
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+Shader "Custom/Blend" {
 	Properties {
 		_MainTex ("Main Texture", 2D) = "black" {}
 		_Gamma ("Gamma", Float) = 1
@@ -24,7 +26,7 @@
 
 			Input vert(Input IN) {
 				Input OUT;
-				OUT.vertex = mul(UNITY_MATRIX_MVP, IN.vertex);
+				OUT.vertex = UnityObjectToClipPos(IN.vertex);
 				OUT.uv = IN.uv;
 				OUT.uv2 = IN.uv2;
 				return OUT;
