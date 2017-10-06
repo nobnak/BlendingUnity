@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Blending2 {
 
-    public class ScopedRenderTexture : Scoped {
+    public class ScopedRenderTextureActivator : ScopedActivator {
         protected RenderTexture prev;
 
-        public ScopedRenderTexture(RenderTexture next) {
+        public ScopedRenderTextureActivator(RenderTexture next) {
             prev = RenderTexture.active;
             RenderTexture.active = next;
         }
@@ -19,7 +19,7 @@ namespace Blending2 {
         #endregion
     }
 
-    public abstract class Scoped : System.IDisposable {
+    public abstract class ScopedActivator : System.IDisposable {
         #region IDisposable implementation
         public abstract void Dispose ();
         #endregion
