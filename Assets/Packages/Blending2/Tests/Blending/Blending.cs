@@ -1,5 +1,6 @@
 ﻿using Gist.Extensions.Array;
 using Gist.GPUBuffer;
+using Gist.Scoped;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
