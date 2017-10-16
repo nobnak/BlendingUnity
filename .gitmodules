@@ -1,3 +1,6 @@
 [submodule "Assets/Packages/Gist"]
 	path = Assets/Packages/Gist
 	url = https://github.com/nobnak/Gist.git
+[submodule "Assets/Packages/Blending"]
+	path = Assets/Packages/Blending
+	url = https://github.com/nobnak/Blending.git
