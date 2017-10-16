@@ -46,6 +46,7 @@
 			float4x4 _WorldToScreenMatrix;
 			StructuredBuffer<float4x4> _UVToWorldMatrices;
 			StructuredBuffer<float4x4> _EdgeToLocalUVMatrices;
+			StructuredBuffer<float4x4> _LocalToWorldUVMatrices;
 
 			v2f vert (appdata v) {
 				v2f o;
@@ -53,26 +54,41 @@
 				int vindex = _Indices[v.vid];
 				float2 uv = _Uvs[vindex];
 				float2 edge = _Edges[vindex];
-				float4x4 cornerMat = _UVToWorldMatrices[v.iid];
 
-				float2 pairx = float2(1 - uv.x, uv.x);
-				float4 nest = float4(pairx * (1 - uv.y), pairx * uv.y);
-				float4 pos = float4(mul(cornerMat, nest).xy, 0, 1);
+				float4x4 worldMat = _UVToWorldMatrices[v.iid];
+				float4x4 edgeMat = _EdgeToLocalUVMatrices[v.iid];
+				float4x4 uvMat = _LocalToWorldUVMatrices[v.iid];
+
+				uv = lerp(uv, mul(edgeMat, float4(uv, 0, 1)).xy, edge);
+				float2 worldUv = mul(uvMat, float4(uv, 0, 1)).xy;
+
+				float2 tensionx = float2(1 - uv.x, uv.x);
+				float4 tension = float4(tensionx * (1 - uv.y), tensionx * uv.y);
+				float4 pos = float4(mul(worldMat, tension).xy, 0, 1);
 
 				pos = float4(mul(_WorldToScreenMatrix, float4(pos.xyz, 1)).xyz, 1);
 
 				o.vertex = pos;
-				o.uv = uv;
+				o.uv = worldUv;
 				o.edge = edge;
 				return o;
 			}
 
 			float4 frag (v2f i) : SV_Target {
 				float4 col = tex2D(_MainTex, i.uv);
+
 				#if defined(OUTPUT_CORNER_UV)
+
 				return float4(frac(i.uv), 0, 1);
+
 				#else
-				return col * (i.edge.x * i.edge.y);
+
+				float g = (i.edge.x * i.edge.y);
+				#ifdef UNITY_COLORSPACE_GAMMA
+				g = LinearToGammaSpace(g);
+				#endif
+				return col * g;
+
 				#endif
 			}
 			ENDCG
