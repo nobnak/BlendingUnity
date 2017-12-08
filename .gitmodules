@@ -4,3 +4,6 @@
 [submodule "Assets/Packages/Blending"]
 	path = Assets/Packages/Blending
 	url = https://github.com/nobnak/Blending.git
+[submodule "Assets/Packages/StateMachine"]
+	path = Assets/Packages/StateMachine
+	url = https://github.com/nobnak/StateMachine.git
